@@ -12,5 +12,6 @@
   "marketingEligibility": {
     "promotionMin": 0.7,
     "reminderMin": 0.6
-  }
+  },
+  "financeAccountId": 1
 }

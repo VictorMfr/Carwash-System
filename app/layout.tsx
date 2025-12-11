@@ -1,14 +1,12 @@
 import type { Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-
 import './globals.css';
-import { Head } from 'next/document';
 
-// Inter font
+// Fuente Inter
 const inter = Inter({ subsets: ['latin'] })
 
-// Metadata
+// Metadatos
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 0.9,

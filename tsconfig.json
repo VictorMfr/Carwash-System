@@ -25,7 +25,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "@tests/watchplugin.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "@tests/watchplugin.js", "@tests/api/apiUtils/model/getModel.testts"],
   "exclude": ["node_modules"],
   "typeRoots": ["./types"]
 }

@@ -1,6 +1,6 @@
 import BrandPage from "@/components/Brand/BrandPage";
 
-// Server side component
+// Componente de servidor
 export default function BrandPageServer() {
     return <BrandPage/>;
 }

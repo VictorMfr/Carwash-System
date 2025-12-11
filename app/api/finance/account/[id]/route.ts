@@ -1,7 +1,7 @@
 import { Account } from "@/services/backend/models/associations";
 import { NextResponse } from "next/server";
 
-// Get account by id
+// Obtener cuenta
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-// Update account
+// Actualizar cuenta
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
@@ -32,7 +32,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-// Delete account
+// Eliminar cuenta
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;

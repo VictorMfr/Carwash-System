@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de marca de vehículo
+ */
 import { POST, GET, DELETE } from "@/app/api/service/vehicle/brand/route";
 import { GET as GETVehicleBrand, PUT as PUTVehicleBrand, DELETE as DELETEVehicleBrand } from "@/app/api/service/vehicle/brand/[id]/route";
 import { VehicleBrand } from "@/services/backend/models/associations";

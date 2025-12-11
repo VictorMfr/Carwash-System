@@ -25,6 +25,7 @@ function minMaxNormalize(values: number[]): { normalize: (v: number) => number }
     return { normalize: (v: number) => (range === 0 ? 1 : (v - min) / range) };
 }
 
+// Obtener clientes con sus índices de lealtad y morosidad
 export async function GET() {
     try {
         const weights = await getMarketingWeights();

@@ -2,7 +2,7 @@ import { Vehicle, VehicleBrand, VehicleModel, Client } from "@/services/backend/
 import { NextResponse } from "next/server";
 import { Op } from "sequelize";
 
-// Create vehicle
+// Crear vehículo
 export async function POST(request: Request) {
     try {
         const { license_plate, brand, model, client } = await request.json();
@@ -17,14 +17,14 @@ export async function POST(request: Request) {
             }
         }
 
-        // Helpers to resolve FK by id or by name, creating if needed (with restore on soft-deleted)
+        // Funciones auxiliares para resolver FK por id o por nombre, creando si es necesario (con restore en soft-deleted)
         const resolveByNameOrId = async (value: any, Model: any) => {
             if (!value) return null;
-            // numeric id
+            // id numérico
             if (typeof value === 'number') return value;
-            // object with id
+            // objeto con id
             if (typeof value === 'object' && value.id) return value.id;
-            // get candidate name
+            // obtener nombre candidato
             const candidateName = typeof value === 'string' ? value : (value.name ?? value.label);
             if (!candidateName) return null;
             const existing = await Model.findOne({ where: { name: candidateName }, paranoid: false });
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         const brandId = await resolveByNameOrId(brand, VehicleBrand);
         const modelId = await resolveByNameOrId(model, VehicleModel);
 
-        // Client puede traer más campos; intentamos respetarlos si vienen
+        // El cliente puede traer más campos; intentamos respetarlos si vienen
         let clientId: number | null = null;
         if (client) {
             if (typeof client === 'number') {
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     }
 }
 
-// Get vehicles
+// Obtener vehículos
 export async function GET() {
     try {
         const vehicles = await Vehicle.findAll({
@@ -94,7 +94,7 @@ export async function GET() {
     }
 }
 
-// Delete multiple vehicles
+// Eliminar vehículos
 export async function DELETE(request: Request) {
     try {
         const { ids } = await request.json();
@@ -102,7 +102,7 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'No vehicle IDs provided' }, { status: 400 });
         }
 
-        // Normalize ids to numbers and use IN operator explicitly to avoid dialect quirks
+        // Normalizar ids a números y usar IN operator explícitamente para evitar диалектные особенности
         const normalizedIds = ids.map((id: string | number) => Number(id)).filter((n) => !Number.isNaN(n));
         if (normalizedIds.length === 0) {
             return NextResponse.json({ error: 'No valid vehicle IDs provided' }, { status: 400 });

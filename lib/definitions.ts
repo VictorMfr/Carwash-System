@@ -38,7 +38,10 @@ export const AssignRolesSchema = z.object({
   roles: z.array(z.union([z.string(), z.number()])).min(1, 'Debe seleccionar al menos un rol')
 });
 
-
+// Role schema
+export const RoleObjectSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+});
 
 
 
@@ -63,6 +66,9 @@ export const BrandObjectSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
 });
 
+export const StatusObjectSchema = z.object({
+  status: z.string().min(1, 'El estado es requerido'),
+});
 
 
 
@@ -187,6 +193,32 @@ export const ServiceVehicleObjectSchemaStepFour = z.object({
   dollar_charge: z.number('El cobro en dolares es requerido').optional(),
   bol_charge: z.number('El cobro en bolívares es requerido').optional(),
   dollar_rate: z.number('La tasa de cambio es requerida'),
+});
+
+// STATE SCHEMA
+export const StateObjectSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+});
+
+
+const AutocompleteObjectSchema = z.object({
+  id: z.union([z.number(), z.string()]).optional(),
+  name: z.string().optional(),
+  label: z.string().optional(),
+  value: z.union([z.string(), z.number()]).optional(),
+}).partial();
+
+export const StockDetailsObjectSchema = z.object({
+  quantity: z.number('La cantidad es requerida'),
+  entry_date: z.date({ message: 'La fecha es requerida' }),
+  picture: z.string().min(1, 'La imagen es requerida'),
+  brand: z.object(undefined, 'La marca es requerida'),
+  state: z.object(undefined, 'El estado es requerido'),
+  dollar_rate: z.number().optional(),
+  bol_charge: z.number().optional(),
+  dollar_charge: z.number().optional(),
+  charge_account: AutocompleteObjectSchema.optional(),
+  method: AutocompleteObjectSchema.optional(),
 });
 
 // EXPORT SCHEMAS

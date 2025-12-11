@@ -8,9 +8,9 @@ type ClientAgg = {
     lastname: string;
     totalSpent: number; // a
     serviceCount: number; // b
-    lastServiceDate: Date | null; // for c
-    pendingAmount: number; // a (delinquency)
-    pendingCount: number; // b (delinquency)
+    lastServiceDate: Date | null; // para c
+    pendingAmount: number; // a (delincuencia)
+    pendingCount: number; // b (delincuencia)
 };
 
 function minMaxNormalize(values: number[]): { normalize: (v: number) => number } {
@@ -75,11 +75,11 @@ export async function GET() {
 
         const rows = Array.from(map.values());
 
-        // Build arrays for normalization
+        // Construir arrays para normalización
         const a_spent = rows.map(r => r.totalSpent);
         const b_count = rows.map(r => r.serviceCount);
         const daysSinceLast = rows.map(r => {
-            if (!r.lastServiceDate) return Number.MAX_SAFE_INTEGER / 2; // very old if none
+            if (!r.lastServiceDate) return Number.MAX_SAFE_INTEGER / 2; // muy antiguo si no hay
             const diffMs = Date.now() - r.lastServiceDate.getTime();
             return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
         });

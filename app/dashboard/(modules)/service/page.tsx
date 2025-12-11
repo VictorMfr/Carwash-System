@@ -1,6 +1,6 @@
 import ServicePage from "@/components/Service/ServicePage";
 
-// Server side component
+// Componente de servidor
 export default function ServicePageServer() {
     return <ServicePage/>;
 }

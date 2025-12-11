@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de stock por producto
+ */
 import { GET as GETProductStockRef } from "@/app/api/stock/product/[id]/ref/route";
 import { Product, Stock, User } from "@/services/backend/models/associations";
 
@@ -15,8 +19,8 @@ const createTestUser = async () => {
   return user as any;
 };
 
-describe('Rutas de stock - product ref', () => {
-  test('GET stock por producto', async () => {
+describe('Stock por producto', () => {
+  test('Obtener stock por producto', async () => {
     const product = await Product.create({ name: 'Ref Product', unit: 'kg', isTool: false });
     const user = await createTestUser();
 

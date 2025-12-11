@@ -1,14 +1,14 @@
-// Store picture in uploads folder
+// Guardar imagen en la carpeta uploads
 import path from "path";
 import { promises as fs } from "fs";
 
-// Get the uploads directory
+// Obtener la carpeta uploads
 const getUploadsDir = (subDir: string) => {
     const root = process.cwd();
     return path.join(root, "uploads", subDir);
 }
 
-// Determine the extension of the file
+// Determinar la extensión del archivo
 const determineExtension = (file: File) => {
     const originalName = file.name || "";
     const existingExt = path.extname(originalName);
@@ -22,13 +22,13 @@ const determineExtension = (file: File) => {
     return ".bin";
 }
 
-// Store picture in uploads folder
+// Guardar imagen en la carpeta uploads
 export const storePicture = async (picture: File, subDir: string, name?: string) => {
     const dir = getUploadsDir(subDir);
     await fs.mkdir(dir, { recursive: true });
 
     const ext = determineExtension(picture);
-    // If a name is provided, ensure we only use the base filename (avoid passing a public path)
+    // Si se proporciona un nombre, asegurarse de que solo se use el nombre base del archivo (evitar pasar una ruta pública)
     const baseName = name ? path.basename(name) : undefined;
     const uniqueName = baseName || `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     const filePath = path.join(dir, uniqueName);
@@ -41,32 +41,32 @@ export const storePicture = async (picture: File, subDir: string, name?: string)
     return publicPath;
 }
 
-// Read upload file
+// Leer archivo de uploads
 export const readUploadFile = async (subDir: string, fileName: string) => {
     const filePath = path.join(process.cwd(), "uploads", subDir, fileName);
     const file = await fs.readFile(filePath);
     return file;
 }
 
-// Delete upload file
+// Eliminar archivo de uploads
 export const deleteUploadFile = async (fileName: string) => {
     try {
         if (!fileName) return;
-        // Normalize incoming value which may be a public path like "/uploads/sub/file.png"
+        // Normalizar el valor de entrada que puede ser una ruta pública como "/uploads/sub/file.png"
         let normalized = fileName.replace(/\\/g, '/');
-        // Remove leading slashes
+        // Eliminar los slashes iniciales
         normalized = normalized.replace(/^\/+/, '');
-        // Ensure path starts at uploads/
+        // Asegurar que la ruta comience con uploads/
         const uploadsIndex = normalized.indexOf('uploads/');
         if (uploadsIndex > 0) normalized = normalized.slice(uploadsIndex);
         const filePath = path.join(process.cwd(), normalized);
         await fs.unlink(filePath);
     } catch (e) {
-        // Silently ignore if file doesn't exist
+        // Silenciosamente ignorar si el archivo no existe
     }
 }
 
-// validate picture
+// Validar imagen
 export const isValidPicture = (picture: FormDataEntryValue | null) => {
     try {
         const pictureIsNotEmpty = !!picture;
@@ -88,13 +88,13 @@ export const isValidPicture = (picture: FormDataEntryValue | null) => {
     }
 }
 
-// Server side picture input processing
+// Procesar entrada de imagen del servidor
 export const storeAndGetPicturePath = async (picture: FormDataEntryValue | null, subDir: string) => {
     try {
-        // Validate picture
+        // Validar imagen
         if (!isValidPicture(picture)) return null;
 
-        // Get the picture path
+        // Obtener la ruta de la imagen
         const picturePath = await storePicture(picture as File, subDir);
         return picturePath;
     } catch (error) {

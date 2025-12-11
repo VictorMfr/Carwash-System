@@ -1,8 +1,10 @@
-import { Service, Recipe, Operator, Vehicle, StockDetails } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import { Service, Recipe, Operator, Vehicle, StockDetails, Client } from "@/services/backend/models/associations";
+import { NextRequest, NextResponse } from "next/server";
 import { handleServerError } from "@/lib/error";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import { StatusObjectSchema } from "@/lib/definitions";
 
-// Get service by id
+// Obtener servicio
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
@@ -25,87 +27,48 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-// Update service
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { date, recipeId, operatorIds, vehicleId, stockDetailIds } = await request.json();
+// Actualizar servicio
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: Service,
+        params,
+        request,
+        validationSchema: StatusObjectSchema,
+        afterUpdate: async (model) => {
+            const reloadedModel = await model.reload({
+                include: [
+                    { model: Recipe, as: 'Recipe' },
+                    { model: Operator, as: 'Operators' },
+                    { model: Vehicle, as: 'Vehicle', include: [{ model: Client, as: 'Client' }] },
+                    { model: StockDetails, as: 'StockDetails' }
+                ]
+            });
 
-        const service = await Service.findByPk(id);
-        if (!service) {
-            return NextResponse.json({ error: 'Service not found' }, { status: 404 });
+            const json = reloadedModel.toJSON() as any;
+
+            return {
+                ...json,
+                recipeName: json.Recipe.name,
+                dollar_rate: json.dollar_rate,
+                bol_charge: json.bol_charge,
+                // Derive dollar_charge for the client (read-only)
+                dollar_charge: json.dollar_rate ? Number(json.bol_charge) / Number(json.dollar_rate) : null,
+                status: json.status,
+                vehicleLicensePlate: json.Vehicle?.license_plate,
+                client: `${json.Vehicle?.Client?.name} ${json.Vehicle?.Client?.lastname}`,
+                operators: json.Operators?.map((op: any) => ({
+                    id: op.id,
+                    name: op.name,
+                    lastname: op.lastname,
+                    phoneNumber: op.phone,
+                    address: op.address,
+                })) || [],
+            };
         }
-
-        // Update basic fields
-        if (date) {
-            await service.update({ date: new Date(date) });
-        }
-
-        // Update recipe if provided
-        if (recipeId) {
-            const recipe = await Recipe.findByPk(recipeId);
-            if (!recipe) {
-                return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
-            }
-            await service.setRecipe(recipe);
-        }
-
-        // Update vehicle if provided
-        if (vehicleId) {
-            const vehicle = await Vehicle.findByPk(vehicleId);
-            if (!vehicle) {
-                return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
-            }
-            await service.setVehicle(vehicle);
-        }
-
-        // Update operators if provided
-        if (operatorIds !== undefined) {
-            if (operatorIds.length > 0) {
-                const operators = await Operator.findAll({
-                    where: { id: operatorIds }
-                });
-                if (operators.length !== operatorIds.length) {
-                    return NextResponse.json({ error: 'One or more operators not found' }, { status: 404 });
-                }
-                await service.setOperators(operators);
-            } else {
-                await service.setOperators([]);
-            }
-        }
-
-        // Update stock details if provided
-        if (stockDetailIds !== undefined) {
-            if (stockDetailIds.length > 0) {
-                const stockDetails = await StockDetails.findAll({
-                    where: { id: stockDetailIds }
-                });
-                if (stockDetails.length !== stockDetailIds.length) {
-                    return NextResponse.json({ error: 'One or more stock details not found' }, { status: 404 });
-                }
-                await service.setStockDetails(stockDetails);
-            } else {
-                await service.setStockDetails([]);
-            }
-        }
-
-        // Return updated service with associations
-        const updatedService = await Service.findByPk(id, {
-            include: [
-                { model: Recipe, as: 'Recipe' },
-                { model: Operator, as: 'Operators' },
-                { model: Vehicle, as: 'Vehicle' },
-                { model: StockDetails, as: 'StockDetails' }
-            ]
-        });
-
-        return NextResponse.json(updatedService);
-    } catch (error) {
-        return handleServerError(error);
-    }
+    });
 }
 
-// Delete service
+// Eliminar servicio
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;

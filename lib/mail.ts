@@ -1,7 +1,7 @@
-// Use nodemailer to send emails
+// Usar nodemailer para enviar emails
 import nodemailer from 'nodemailer';
 
-// Create a test account or replace with real credentials.
+// Crear una cuenta de prueba o reemplazar con credenciales reales
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {

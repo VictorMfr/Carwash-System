@@ -1,5 +1,5 @@
 import NotFoundPage from '@/components/NotFound/NotFoundPage';
 
-export default function NotFoundServer() {
+export default function NotFoundPageServer() {
     return <NotFoundPage />
 }

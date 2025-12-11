@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de estado
+ */
 import { POST, GET, DELETE } from "@/app/api/stock/state/route";
 import { GET as GETState, PUT as PUTState, DELETE as DELETEState } from "@/app/api/stock/state/[id]/route";
 import { State } from "@/services/backend/models/associations";

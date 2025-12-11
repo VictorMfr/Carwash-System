@@ -1,6 +1,6 @@
 import NotificationIndex from "@/components/Notification";
 
-// Server side component
+// Componente de servidor
 export default function NotificationPageServer() {
     return <NotificationIndex/>;
 }

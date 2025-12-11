@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Utilidades para validación de imágenes
+ */
 import { isValidPicture } from "@/lib/pictures";
 
 // Polyfill File for Node.js environment

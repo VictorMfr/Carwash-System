@@ -21,6 +21,7 @@ import {
 import db from '../../db';
 import Recipe from './recipe';
 import Operator from './operator';
+import ServiceOperator from './serviceOperator';
 import Vehicle from './vehicle/vehicle';
 import StockDetails from '../stock/stockDetails';
 
@@ -39,6 +40,7 @@ class Service extends Model<InferAttributes<Service>, InferCreationAttributes<Se
 
     // Many-to-many relationship with Operator
     declare Operators: NonAttribute<Operator[]>;
+    declare ServiceOperator?: NonAttribute<ServiceOperator>;
     declare getOperators: BelongsToManyGetAssociationsMixin<Operator>;
     declare countOperators: BelongsToManyCountAssociationsMixin;
     declare hasOperator: BelongsToManyHasAssociationMixin<Operator, number>;

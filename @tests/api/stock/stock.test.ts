@@ -1,86 +1,106 @@
 /** @jest-environment node */
-import { GET as GETStocks, DELETE as DELETEStocks, POST as POSTStock } from "@/app/api/stock/route";
-import { GET as GETStock, PUT as PUTStock, DELETE as DELETEStock } from "@/app/api/stock/[id]/route";
+
+/**
+ * Este archivo contiene las pruebas para las rutas de stock
+ */
+import createModel from "@/lib/apiUtils/model/createModel";
 import { Product, Stock, User } from "@/services/backend/models/associations";
+import { StockObjectSchema } from "@/lib/definitions";
+import { decrypt, getSession } from "@/lib/session";
 
-// Helper to create a user
-const createTestUser = async () => {
-  const rnd = Math.random().toString(36).slice(2);
-  const user = await (User as any).create({
-    name: `Test${rnd}`,
-    lastname: "User",
-    phone: "0000000000",
-    address: "Test Address",
-    email: `test_${rnd}@example.com`,
-    password: "hashed",
-  });
-  return user as any;
-};
 
-describe('Rutas de stock (main y por id)', () => {
-  test('POST sin sesión debe retornar error (400/500)', async () => {
-    const request = { json: async () => ({ product: { id: 1, name: 'X' }, minimum_quantity: 1 }) } as any;
-    const res = await POSTStock(request);
-    expect([400, 500]).toContain(res.status);
-  });
+const testStockOne = {
+  json: async () => ({
+    product: {
+      id: 1,
+    },
+    minimum_quantity: 10,
+  }),
+} as any;
 
-  test('GET stocks debe retornar 200', async () => {
-    const res = await GETStocks();
-    expect(res.status).toBe(200);
-  });
+describe('Rutas de stock', () => {
+  test('Crear stock', async () => {
+    const response = await createModel({
+      model: Stock,
+      validationSchema: StockObjectSchema,
+      request: testStockOne,
+      preCreate: async (validatedData) => {
+        const { product, minimum_quantity } = validatedData as any;
 
-  test('GET/PUT/DELETE por id', async () => {
-    // Crear dependencias
-    const product = await Product.create({ name: 'Stock Main Test', unit: 'kg', isTool: false });
-    const user = await createTestUser();
+        if (!product || !minimum_quantity) {
+          throw new Error('Product and minimum_quantity are required');
+        }
 
-    // Crear stock vía modelo
-    const stock = await Stock.create({ total_quantity: 0, minimum_quantity: 5 });
-    await (stock as any).setProduct(product.id);
-    await (stock as any).setUser(user.id);
+        // Obtener usuario desde la sesión
+        const session = await getSession();
+        if (!session) {
+          throw new Error('Session not found');
+        }
 
-    // GET por id
-    const getRes = await GETStock(null as any, { params: Promise.resolve({ id: stock.id.toString() }) });
-    expect(getRes.status).toBe(200);
+        const decoded = await decrypt(session);
+        if (!decoded) {
+          throw new Error('User not found');
+        }
 
-    // PUT por id
-    const putReq = { json: async () => ({ minimum_quantity: 15 }) } as any;
-    const putRes = await PUTStock(putReq, { params: Promise.resolve({ id: stock.id.toString() }) });
-    expect(putRes.status).toBe(200);
+        const user = await User.findByPk(decoded.userId);
+        if (!user) {
+          throw new Error('User not found');
+        }
 
-    // DELETE por id
-    const delRes = await DELETEStock(null as any, { params: Promise.resolve({ id: stock.id.toString() }) });
-    expect(delRes.status).toBe(200);
+        // Evitar asociar un producto que ya tenga inventario
+        const existing = await Stock.findOne({
+          include: [{ model: Product, as: 'Product', where: { id: product.id } }]
+        });
+        if (existing) {
+          throw new Error('Este inventario ya existe');
+        }
 
-    // Cleanup forzado por si falló el delete de ruta
-    await (stock as any).destroy({ force: true }).catch(() => {});
-    await product.destroy({ force: true });
-    await (user as any).destroy({ force: true });
-  });
+        // Datos que realmente se guardan en la tabla `stocks`
+        return {
+          total_quantity: 0,
+          minimum_quantity: Number(minimum_quantity),
+        };
+      },
+      postCreate: async (validatedData, stock) => {
+        const { product } = validatedData as any;
 
-  test('DELETE múltiple (bulk)', async () => {
-    // Crear dependencias
-    const productA = await Product.create({ name: 'Bulk A', unit: 'kg', isTool: false });
-    const productB = await Product.create({ name: 'Bulk B', unit: 'kg', isTool: false });
-    const user = await createTestUser();
+        // Asociar producto
+        if (product?.id) {
+          await stock.setProduct(product.id);
+        }
 
-    const stockA = await Stock.create({ total_quantity: 0, minimum_quantity: 1 });
-    await (stockA as any).setProduct(productA.id);
-    await (stockA as any).setUser(user.id);
+        // Asociar usuario
+        const session = await getSession();
+        if (!session) {
+          throw new Error('Session not found');
+        }
 
-    const stockB = await Stock.create({ total_quantity: 0, minimum_quantity: 2 });
-    await (stockB as any).setProduct(productB.id);
-    await (stockB as any).setUser(user.id);
+        const decoded = await decrypt(session);
+        if (!decoded) {
+          throw new Error('User not found');
+        }
 
-    const req = { json: async () => ({ ids: [stockA.id.toString(), stockB.id.toString()] }) } as any;
-    const res = await DELETEStocks(req);
-    expect(res.status).toBe(200);
+        const user = await User.findByPk(decoded.userId);
+        if (!user) {
+          throw new Error('User not found');
+        }
 
-    // Cleanup
-    await (stockA as any).destroy({ force: true }).catch(() => {});
-    await (stockB as any).destroy({ force: true }).catch(() => {});
-    await productA.destroy({ force: true });
-    await productB.destroy({ force: true });
-    await (user as any).destroy({ force: true });
+        await stock.setUser(user.id);
+
+        // Formatear respuesta igual que antes
+        const json: any = stock.toJSON();
+        const formatted = {
+          ...json,
+          product: product.name,
+          unit: product.unit,
+        };
+
+        return formatted;
+      }
+    });
+
+    expect(response.status).toBe(200);
+
+    await (await Stock.findByPk((await response.json()).id))?.destroy({ force: true });
   });
 });

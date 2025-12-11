@@ -1,9 +1,5 @@
-import { CircularProgress, Container } from "@mui/material";
+import LoadingPage from "@/components/Loading/LoadingPage";
 
-export default function Loading() {
-    return (
-        <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            <CircularProgress size={100} />
-        </Container>
-    )
+export default function LoadingPageServer() {
+    return <LoadingPage />
 }

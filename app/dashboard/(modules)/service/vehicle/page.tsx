@@ -1,6 +1,6 @@
 import VehiclesPage from "@/components/Vehicle/VehiclesPage";
 
-// Server side component
+// Componente de servidor
 export default function VehiclePageServer() {
     return <VehiclesPage/>;
 }

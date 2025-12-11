@@ -1,25 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { Product } from "@/services/backend/models/associations";
+import getModel from "@/lib/apiUtils/model/getModel";
 
-// Get stock in product
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const product = await Product.findByPk(id);
-        
-        if (!product) {
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-        }
-
+// Obtener stock en producto
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(Product, params, async (product) => {
         const stock = await product.getStock();
-
-        if (!stock) {
-            console.log('Stock not found');
-        }
-
-        return NextResponse.json(stock);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting product' }, { status: 500 });
-    }
+        return stock;
+    });
 }

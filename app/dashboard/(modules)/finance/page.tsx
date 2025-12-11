@@ -1,6 +1,6 @@
 import FinancePage from "@/components/Finance/FinancePage";
 
-// Server side component
+// Componente de servidor
 export default function FinancePageServer() {
     return <FinancePage/>;
 }

@@ -24,13 +24,19 @@ import Brand from './brand';
 import State from './state';
 import Stock from './stock';
 import Service from '../service/service';
+import Transaction from '../finance/transaction';
 
 class StockDetails extends Model<InferAttributes<StockDetails>, InferCreationAttributes<StockDetails>> {
     declare id: CreationOptional<number>;
     declare quantity: number;
-    declare price: number;
     declare entry_date: Date;
     declare picture: string | null;
+
+    // Belongs to Transaction
+    declare Transaction: NonAttribute<Transaction>;
+    declare getTransaction: BelongsToGetAssociationMixin<Transaction>;
+    declare setTransaction: BelongsToSetAssociationMixin<Transaction, number>;
+    declare createTransaction: BelongsToCreateAssociationMixin<Transaction>;
 
     // Belongs to Brand
     declare Brand: NonAttribute<Brand>;
@@ -74,10 +80,6 @@ StockDetails.init({
         autoIncrement: true,
     },
     quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    price: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },

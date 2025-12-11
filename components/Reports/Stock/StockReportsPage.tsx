@@ -191,6 +191,11 @@ interface StockDetailData {
     entry_date: string;
     brand: string;
     state: string;
+    bol_charge?: number;
+    dollar_rate?: number;
+    dollar_charge?: number;
+    charge_account?: string;
+    method?: string;
     Stock?: {
         Product?: {
             name: string;
@@ -391,6 +396,9 @@ export const StockReportPages = ({ stocks, stockDetails, statistics }: { stocks:
                                 <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Marca</Text>
                                 <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Cantidad</Text>
                                 <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Precio</Text>
+                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Monto Bs (Tx)</Text>
+                                <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Tasa</Text>
+                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Monto $ (Tx)</Text>
                                 <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Fecha</Text>
                             </View>
                             {recentEntries.map((entry, index) => (
@@ -402,6 +410,21 @@ export const StockReportPages = ({ stocks, stockDetails, statistics }: { stocks:
                                     <Text style={[styles.tableCell, { flex: 0.8 }]}>{entry.quantity.toLocaleString()}</Text>
                                     <Text style={[styles.tableCell, { flex: 1 }]}>
                                         Bs. {entry.price.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </Text>
+                                    <Text style={[styles.tableCell, { flex: 1 }]}>
+                                        {typeof entry.bol_charge === 'number' 
+                                            ? `Bs. ${entry.bol_charge.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                            : 'N/A'}
+                                    </Text>
+                                    <Text style={[styles.tableCell, { flex: 0.8 }]}>
+                                        {typeof entry.dollar_rate === 'number' 
+                                            ? entry.dollar_rate.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                            : 'N/A'}
+                                    </Text>
+                                    <Text style={[styles.tableCell, { flex: 1 }]}>
+                                        {typeof entry.dollar_charge === 'number' 
+                                            ? `$ ${entry.dollar_charge.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                            : 'N/A'}
                                     </Text>
                                     <Text style={[styles.tableCell, { flex: 1 }]}>{dayjs(entry.entry_date).format('DD/MM/YYYY')}</Text>
                                 </View>

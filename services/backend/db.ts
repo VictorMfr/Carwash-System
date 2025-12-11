@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import mysql2 from 'mysql2';
 
-// Database connection
+// Conexión a la base de datos
 const db = new Sequelize(
     process.env.DB_NAME || 'mdd_db',
     process.env.DB_USER || 'root',

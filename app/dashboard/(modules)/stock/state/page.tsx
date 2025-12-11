@@ -1,6 +1,6 @@
 import StatesPage from "@/components/State/StatesPage";
 
-// Server side component
+// Componente de servidor
 export default function StatePageServer() {
     return <StatesPage/>;
 }

@@ -2,7 +2,7 @@ import { AxiosError } from "axios";
 import { NextResponse } from "next/server";
 import { SequelizeScopeError } from "sequelize";
 
-// handle api error
+// Manejar error de API
 export const handleApiError = (error: unknown, uiContext: any) => {
     if (error instanceof AxiosError) {
         const apiError = error.response?.data?.error || error.response?.data?.message || error.message || 'Ocurrió un error en la solicitud';
@@ -17,7 +17,7 @@ export const handleApiError = (error: unknown, uiContext: any) => {
     }
 }
 
-// handle server error
+// Manejar error de servidor
 export const handleServerError = (error: unknown) => {
 
     const functionCalledWithoutError = "La funcion handleServerError fue llamada sin un error";
@@ -27,19 +27,20 @@ export const handleServerError = (error: unknown) => {
         return NextResponse.json({ error: functionCalledWithoutError }, { status: 500 });
     }
 
-    // Check if it's a axios error
+    // Verificar si es un error de axios
     if (error instanceof AxiosError) {
         const axiosError = "Axios Error: " + error.response?.data?.error || error.response?.data?.message || error.message || 'Ocurrió un error en la solicitud';
         console.log(axiosError);
         return NextResponse.json({ error: axiosError }, { status: 500 });
     }
 
-    // Check if it's a error
+    // Verificar si es un error
     if (error instanceof Error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    
 
-    // Check if it's a unknown error
+    // Verificar si es un error desconocido
     return NextResponse.json({ error: 'Ocurrió un error desconocido' }, { status: 500 });
 }
     

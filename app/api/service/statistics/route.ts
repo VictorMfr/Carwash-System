@@ -5,7 +5,7 @@ import { Op } from "sequelize";
 
 export async function GET() {
     try {
-        // Get services by recipe
+        // Obtener servicios por receta
         const servicesByRecipe = await Service.findAll({
             attributes: [
                 [Service.sequelize!.fn('COUNT', Service.sequelize!.col('Service.id')), 'count']
@@ -21,7 +21,7 @@ export async function GET() {
             subQuery: false
         });
 
-        // Get services by vehicle
+        // Obtener servicios por vehículo
         const servicesByVehicle = await Service.findAll({
             attributes: [
                 [Service.sequelize!.fn('COUNT', Service.sequelize!.col('Service.id')), 'count']
@@ -37,7 +37,7 @@ export async function GET() {
             subQuery: false
         });
 
-        // Get services by operator
+        // Obtener servicios por operador
         const servicesByOperatorRaw = await Operator.findAll({
             attributes: [
                 'id',
@@ -57,7 +57,7 @@ export async function GET() {
             subQuery: false
         });
 
-        // Get services by month (last 6 months)
+        // Obtener servicios por mes (últimos 6 meses)
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -76,7 +76,7 @@ export async function GET() {
             raw: true
         });
 
-        // Transform data for charts
+        // Transformar datos para gráficos
         const servicesByRecipeData = servicesByRecipe.map((item: any, index) => ({
             id: index,
             value: parseInt(item.dataValues.count),

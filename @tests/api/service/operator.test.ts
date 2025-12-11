@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de operador
+ */
 import { POST, GET, DELETE } from "@/app/api/service/operator/route";
 import { GET as GETOperator, PUT as PUTOperator, DELETE as DELETEOperator } from "@/app/api/service/operator/[id]/route";
 import { Operator } from "@/services/backend/models/associations";

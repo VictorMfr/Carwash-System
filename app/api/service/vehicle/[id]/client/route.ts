@@ -1,22 +1,12 @@
-import { NextResponse } from "next/server";
-import { Client, Vehicle } from "@/services/backend/models/associations";
+import { NextRequest } from "next/server";
+import { Vehicle } from "@/services/backend/models/associations";
+import getModel from "@/lib/apiUtils/model/getModel";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const vehicle = await Vehicle.findByPk(id, {
-            include: [{ model: Client, as: 'Client' }]
-        });
-
-        if (!vehicle) {
-            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
-        }
-
-        return NextResponse.json((vehicle as any).Client || null);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting vehicle client' }, { status: 500 });
-    }
+// Obtener cliente por id de vehículo
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(Vehicle, params, async (vehicle) => {
+        return vehicle.Client;
+    });
 }
 
 

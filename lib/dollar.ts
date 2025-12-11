@@ -1,4 +1,4 @@
-// Get the dollar rate from the API
+// Obtener el tipo de cambio del dólar
 // https://ve.dolarapi.com/v1/dolares
 
 export default async function getDollarRate() {

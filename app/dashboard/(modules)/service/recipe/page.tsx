@@ -1,6 +1,6 @@
 import RecipesPage from "@/components/Recipe/RecipesPage";
 
-// Server side component
+// Componente de servidor
 export default function RecipePageServer() {
     return <RecipesPage/>;
 }

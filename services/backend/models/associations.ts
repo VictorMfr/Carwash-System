@@ -3,7 +3,6 @@ import User from './auth/user';
 import Role from './auth/role';
 import Stock from './stock/stock';
 import Product from './stock/product';
-import StockDetails from './stock/stockDetails';
 import StockBrand from './stock/brand';
 import State from './stock/state';
 import Recipe from './service/recipe';
@@ -18,6 +17,8 @@ import Method from './finance/method';
 import VehicleModel from './service/vehicle/model';
 import RecipeStockDetails from './service/recipeStockDetails';
 import ServiceStockDetails from './service/serviceStockDetails';
+import ServiceOperator from './service/serviceOperator';
+import StockDetails from './stock/stockDetails';
 
 // services/backend/models/associations.ts
 User.belongsToMany(Role, {
@@ -95,13 +96,13 @@ ServiceStockDetails.belongsTo(StockDetails, { as: 'StockDetails', foreignKey: 's
 ServiceStockDetails.belongsTo(Service, { as: 'Service', foreignKey: 'serviceId' });
 
 Service.belongsToMany(Operator, { 
-    through: 'services_operators', 
+    through: { model: ServiceOperator },
     as: 'Operators',
     foreignKey: 'serviceId',
     otherKey: 'operatorId'
 });
 Operator.belongsToMany(Service, { 
-    through: 'services_operators', 
+    through: { model: ServiceOperator },
     as: 'Services',
     foreignKey: 'operatorId',
     otherKey: 'serviceId'
@@ -128,6 +129,10 @@ Transaction.belongsTo(Account, { as: 'Account', foreignKey: 'accountId' });
 
 Method.hasMany(Transaction, { as: 'Transactions', foreignKey: 'methodId' });
 Transaction.belongsTo(Method, { as: 'Method', foreignKey: 'methodId' });
+
+// StockDetail ↔ Transaction (1:1)
+Transaction.hasOne(StockDetails, { as: 'StockDetail', foreignKey: 'transactionId' });
+StockDetails.belongsTo(Transaction, { as: 'Transaction', foreignKey: 'transactionId' });
 
 
 export {

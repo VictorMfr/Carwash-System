@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de método de pago
+ */
 import { POST, GET, DELETE } from "@/app/api/finance/method/route";
 import { GET as GETMethod, PUT as PUTMethod, DELETE as DELETEMethod } from "@/app/api/finance/method/[id]/route";
 import { Method } from "@/services/backend/models/associations";

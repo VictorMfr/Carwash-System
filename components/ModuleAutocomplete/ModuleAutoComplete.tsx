@@ -146,15 +146,15 @@ const ModuleAutocomplete = ({
     }, [autoCompleteSettings.newItemLabel]);
 
     const getOptionLabelHandler = (option: any) => {
+
         if (!autoCompleteSettings.labelField) throw new Error('labelField is required');
-
-
-        if (autoCompleteSettings.multiple) {
-            return option[autoCompleteSettings.labelField ?? 'name'];
-        }
 
         if (typeof option === 'string') {
             return option;
+        }
+
+        if (autoCompleteSettings.multiple) {
+            return option[autoCompleteSettings.labelField ?? 'name'];
         }
 
         if (option.inputValue) {
@@ -245,7 +245,7 @@ const ModuleAutocomplete = ({
                         fullWidth
                         value={value}
                         onChange={changeHandler}
-                        options={data == '' ? [] : data}
+                        options={Array.isArray(data) ? data : []}
                         renderInput={params => (
                             <TextField
                                 error={error}

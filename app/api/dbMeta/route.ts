@@ -2,6 +2,10 @@
 import db from "@/services/backend/db";
 import { NextResponse } from "next/server";
 
+/** Esta ruta se usa para obtener los metadatos de la base de datos, dentro
+ * del sistema se usa para obtener el tamaño de la base de datos, para luego ser
+ * comparado con el tamaño máximo permitido por el proveedor, el cual esta definido.
+ */
 export async function GET() {
     try {
         const [result] = await db.query(`

@@ -1,82 +1,205 @@
 /** @jest-environment node */
-import { POST, GET, DELETE } from "@/app/api/user/route";
-import { GET as GETUser, PUT as PUTUser, DELETE as DELETEUser } from "@/app/api/user/[id]/route";
+
+/**
+ * Este archivo contiene las pruebas para las rutas de usuario
+ */
+import createModel from "@/lib/apiUtils/model/createModel";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
+import deleteModels from "@/lib/apiUtils/model/deleteModels";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import { UserObjectCreateSchema, UserObjectUpdateSchema } from "@/lib/definitions";
 import { User } from "@/services/backend/models/associations";
-import { toObject } from "../util";
+import bcrypt from "bcryptjs";
+import { NextRequest } from "next/server";
 
-const testUserOne = {
-    json: async () => [
-        { field: 'name', value: 'John' },
-        { field: 'lastname', value: 'Doe' },
-        { field: 'phone', value: '1234567890' },
-        { field: 'address', value: '123 Main St' },
-        { field: 'email', value: 'john.doe@example.com' },
-        { field: 'password', value: 'password123' },
-    ] as any,
-} as any;
+const objOne = {
+    name: 'Test User',
+    lastname: 'Test Lastname',
+    phone: '1234567890',
+    address: '123 Main St',
+    email: 'test-simple@example.com',
+    password: 'password123'
+}
 
-const testUserTwo = {
-    json: async () => [
-        { field: 'name', value: 'Jane' },
-        { field: 'lastname', value: 'Doe' },
-        { field: 'phone', value: '1234567890' },
-        { field: 'address', value: '123 Main St' },
-        { field: 'email', value: 'jane.doe@example.com' },
-        { field: 'password', value: 'password123' },
-    ] as any,
+const objTwo = {
+    name: 'Test User Two',
+    lastname: 'Test Lastname Two',
+    phone: '1234567890',
+    address: '123 Main St',
+    email: 'test-simple@example.com',
+    password: 'password123'
+}
+
+const testUser: NextRequest = {
+    json: async () => objOne
 } as any;
 
 describe('Rutas de usuario', () => {
-
-    // Crear usuario
     test('Crear usuario', async () => {
-        const test = await POST(testUserOne);
-        const user = await test.json();
-        expect(test.status).toBe(200);
+        let modela;
+        const response = await createModel({
+            model: User,
+            validationSchema: UserObjectCreateSchema,
+            request: testUser,
+            uniqueField: 'email',
+            preCreate: async (validatedData) => {
+                const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+                validatedData.password = hashedPassword;
+                return validatedData;
+            },
+            postCreate: async (validatedData, model) => {
+                modela = model;
+                return model;
+            }
+        });
+
+        expect(modela).toBeDefined();
+        expect((modela as any).id).toBeDefined();
+        expect(response.status).toBe(200);
+        const user = await response.json();
+        expect(user).not.toBeNull();
+        expect(user.password).not.toBe((await testUser.json()).password);
+
+        await (await User.findOne({ where: { email: 'test-simple@example.com' } }))?.destroy({ force: true });
+    });
+
+    test('Restaurar un usuario', async () => {
+        // Crear usuario primero
+        const response = await createModel({
+            model: User,
+            validationSchema: UserObjectCreateSchema,
+            request: testUser,
+            uniqueField: 'email',
+        });
+
+        // Eliminar usuario
+        await (await User.findOne({ where: { email: 'test-simple@example.com' } }))?.destroy();
+
+        // Restaurar usuario
+        const responseTwo = await createModel({
+            model: User,
+            validationSchema: UserObjectCreateSchema,
+            request: { json: async () => objTwo } as any,
+            uniqueField: 'email',
+        });
+
+        expect(responseTwo.status).toBe(200);
+        const user = await responseTwo.json();
+        expect(user).not.toBeNull();
+        expect(user.email).toBe(objTwo.email);
+
+        // Eliminar completamente
+        await (await User.findOne({ where: { email: 'test-simple@example.com' } }))?.destroy({ force: true });
+    });
+
+    test('Visualizar un usuario', async () => {
+        const response = await getModel(User, Promise.resolve({ id: '1' }));
+        expect(response.status).toBe(200);
+        const user = await response.json();
+        expect(user).not.toBeNull();
+        expect(user.id).toBeDefined();
+    });
+
+    test('Actualizar un usuario', async () => {
+        const updateResponse = await updateModel({
+            model: User,
+            params: Promise.resolve({ id: '1' }),
+            request: { json: async () => ({
+                name: 'Admin Test',
+                lastname: 'Admin',
+                phone: '1234567890',
+                address: '1234567890',
+                email: 'admin@admin.com'
+            })} as any,
+            validationSchema: UserObjectUpdateSchema,
+        });
+
+        expect(updateResponse.status).toBe(200);
+        const user = await updateResponse.json();
+        expect(user).not.toBeNull();
+        expect(user.name).toBe('Admin Test');
+
+        // Cambiarlo de vuelta a Admin
+        const updateResponseTwo = await updateModel({
+            model: User,
+            params: Promise.resolve({ id: '1' }),
+            request: { json: async () => ({
+                name: 'Admin',
+                lastname: 'Admin',
+                phone: '1234567890',
+                address: '1234567890',
+                email: 'admin@admin.com'
+            })} as any,
+            validationSchema: UserObjectUpdateSchema,
+        });
         
-        // Delete user
-        await (await User.findByPk(user.id))?.destroy({ force: true });
+        expect(updateResponseTwo.status).toBe(200);
     });
 
-    // Obtener usuarios
-    test('Obtener usuarios', async () => {
-        const user = await GET();
-        expect(user.status).toBe(200);
-    });
-
-    // Visualizar usuario
-    test('Visualizar usuario', async () => {
-        const user = await GETUser(null as any, { params: Promise.resolve({ id: '1' }) });
-        expect(user.status).toBe(200);
-    });
-
-    // Actualizar usuario
-    test('Actualizar usuario', async () => {
-        const user = await User.create(toObject(await testUserOne.json()));
-        const response = await PUTUser(testUserOne, { params: Promise.resolve({ id: user.id.toString() }) });
+    test('Eliminar un usuario (soft delete)', async () => {
+        const response = await deleteModel(User, Promise.resolve({ id: '1' }));
         expect(response.status).toBe(200);
-        await user.destroy({ force: true });
+        
+        // Verificar que el usuario está eliminado (soft delete)
+        const verifyUser = await User.findByPk(1, { paranoid: false });
+        expect(verifyUser).not.toBeNull();
+        expect((verifyUser as any).deletedAt).not.toBeNull();
+
+        // Restaurar usuario
+        const restoredUser = await verifyUser?.restore();
+        expect(restoredUser).not.toBeNull();
+        
+        const verifyUserTwo = await User.findByPk(1);
+        expect(verifyUserTwo).not.toBeNull();
     });
 
-    // Borrar usuario (soft delete)
-    test('Borrar usuario', async () => {
-        const user = await User.create(toObject(await testUserOne.json()));
-        const response = await DELETEUser(null as any, { params: Promise.resolve({ id: user.id.toString() }) });
-        expect(response.status).toBe(200);
-        await user.destroy({ force: true });
+    test('Eliminar varios usuarios (soft delete)', async () => {
+    // Crear los dos usuarios
+    const createResponse1 = await createModel({
+        model: User,
+        request: { json: async () => ({
+            name: 'User One',
+            lastname: 'Test1',
+            phone: '1111111111',
+            address: 'Address 1',
+            email: 'user1@example.com',
+            password: 'password123'
+        })} as any,
+        validationSchema: UserObjectCreateSchema,
     });
+    expect(createResponse1.status).toBe(200);
+    const createdUser1 = await createResponse1.json();
+    expect(createdUser1).not.toBeNull();
+    expect(createdUser1.email).toBe('user1@example.com');
 
-    // Borrar multiple usuarios (soft delete)
-    test('Borrar multiple usuarios', async () => {
-        const userOne = await User.create(toObject(await testUserOne.json()));
-        const userTwo = await User.create(toObject(await testUserTwo.json()));
+    const createResponse2 = await createModel({
+        model: User,
+        request: { json: async () => ({
+            name: 'User Two',
+            lastname: 'Test2',
+            phone: '2222222222',
+            address: 'Address 2',
+            email: 'user2@example.com',
+            password: 'password123'
+        })} as any,
+        validationSchema: UserObjectCreateSchema,
+    });
+    expect(createResponse2.status).toBe(200);
+    const createdUser2 = await createResponse2.json();
+    expect(createdUser2).not.toBeNull();
+    expect(createdUser2.email).toBe('user2@example.com');
 
-        const request = { json: async () => ({ ids: [userOne.id.toString(), userTwo.id.toString()] }) } as any;
+    // Eliminar ambos usuarios (soft delete)
 
-        const response = await DELETE(request);
-        expect(response.status).toBe(200);
+    const userOne = await User.findOne({ where: { email: 'user1@example.com' } });
+    const userTwo = await User.findOne({ where: { email: 'user2@example.com' } });
 
-        await userOne.destroy({ force: true });
-        await userTwo.destroy({ force: true });
+    const deleteResponse = await deleteModels(User, { json: async () => ({ ids: [userOne?.id, userTwo?.id] }) } as any);
+    expect(deleteResponse.status).toBe(200);
+    
+    // Eliminar completamente
+    await userOne?.destroy({ force: true });
+    await userTwo?.destroy({ force: true });
     });
 });

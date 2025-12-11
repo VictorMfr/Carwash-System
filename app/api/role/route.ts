@@ -1,9 +1,8 @@
 import { Role } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import getModels from "@/lib/apiUtils/model/getModels";
 
 
-// Get roles
+// Obtener roles
 export async function GET() {
-    const roles = await Role.findAll();
-    return NextResponse.json(roles);
+    return await getModels(Role);
 }

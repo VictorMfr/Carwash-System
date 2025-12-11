@@ -53,7 +53,7 @@ export default function StepperForm() {
             {formCtx.moduleSettings.stepper.orientation === 'horizontal' && (
                 <Fragment>
                     {formCtx.moduleSettings.stepper.steps.map((step, index) => (
-                        <Box key={step.label} display={formCtx.activeStep || controller.activeStep === index ? 'block' : 'none'}>
+                        <Box key={step.label} display={formCtx.activeStep === index || controller.activeStep === index ? 'block' : 'none'}>
                             <ModuleForm
                                 key={step.label}
                                 settings={step}

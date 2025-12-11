@@ -2,7 +2,7 @@ import { decrypt, getSession } from "@/lib/session";
 import { Account, Method, Transaction, User } from "@/services/backend/models/associations";
 import { NextResponse } from "next/server";
 
-// Create transaction
+// Crear transacción
 export async function POST(request: Request) {
     try {
         const session = await getSession();
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 }
 
-// Get all transactions
+// Obtener todas las transacciones
 export async function GET(request: Request) {
     try {
         const transactions = await Transaction.findAll({

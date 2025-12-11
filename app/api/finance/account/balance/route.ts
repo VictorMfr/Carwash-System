@@ -3,8 +3,7 @@ import { Account } from "@/services/backend/models/associations";
 import { Transaction } from "@/services/backend/models/associations";
 import { Sequelize } from "sequelize";
 
-// GET /api/finance/account/balance
-// Returns accounts with their current balances
+// Obtener cuentas con sus balances actuales
 export async function GET() {
     try {
         const sequelize = (Account as any).sequelize as Sequelize;

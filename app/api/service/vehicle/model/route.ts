@@ -1,52 +1,27 @@
+import { ModelObjectSchema } from "@/lib/definitions";
 import { VehicleModel } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import createModel from "@/lib/apiUtils/model/createModel";
+import getModels from "@/lib/apiUtils/model/getModels";
+import deleteModels from "@/lib/apiUtils/model/deleteModels";
+import { NextRequest } from "next/server";
 
-// Create model
-export async function POST(request: Request) {
-    try {
-        const { name } = await request.json();
-
-        const isModelInDB = await VehicleModel.findOne({ where: { name }, paranoid: false });
-        if (isModelInDB) {
-            if (isModelInDB.isSoftDeleted()) {
-                await isModelInDB.restore();
-                return NextResponse.json(isModelInDB);
-            } else {
-                return NextResponse.json({ error: 'Model already exists' }, { status: 400 });
-            }
-        }
-
-        const model = await VehicleModel.create({ name });
-        return NextResponse.json(model);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error creating model' }, { status: 500 });
-    }
+// Crear modelo de vehículo
+export async function POST(request: NextRequest) {
+    return await createModel({
+        model: VehicleModel,
+        validationSchema: ModelObjectSchema,
+        request,
+        uniqueField: 'name',
+    });
 }
 
-// Get models
+// Obtener modelos de vehículo
 export async function GET() {
-    try {
-        const models = await VehicleModel.findAll();
-        return NextResponse.json(models);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting models' }, { status: 500 });
-    }
+    return await getModels(VehicleModel);
 }
 
-// Delete multiple models
-export async function DELETE(request: Request) {
-    try {
-        const { ids } = await request.json();
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return NextResponse.json({ error: 'No model IDs provided' }, { status: 400 });
-        }
-        const deletedCount = await VehicleModel.destroy({ where: { id: ids } });
-        return NextResponse.json({ message: `${deletedCount} models deleted successfully`, deletedCount });
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting models' }, { status: 500 });
-    }
+// Eliminar modelos de vehículo
+export async function DELETE(request: NextRequest) {
+    return await deleteModels(VehicleModel, request);
 }
 

@@ -1,39 +1,24 @@
 import { Product, Stock } from "@/services/backend/models/associations";
 import { NextResponse } from "next/server";
+import createModel from "@/lib/apiUtils/model/createModel";
+import { ProductObjectSchema } from "@/lib/definitions";
+import { NextRequest } from "next/server";
+import deleteModels from "@/lib/apiUtils/model/deleteModels";
 
-// Create product
-export async function POST(request: Request) {
-    try {
-        const { name, unit, isTool } = await request.json();
-        console.log(isTool);
-
-        const isProductInDB = await Product.findOne({
-            where: { name },
-            paranoid: false
-        });
-
-        if (isProductInDB) {
-            if (isProductInDB.isSoftDeleted()) {
-                await isProductInDB.restore();
-                return NextResponse.json(isProductInDB);
-            } else {
-                return NextResponse.json({ error: 'Product already exists' }, { status: 400 });
-            }
-        } else {
-            console.log(name, unit, isTool);
-            const product = await Product.create({ name, unit, isTool: isTool ? isTool : 0 });
-            return NextResponse.json(product);
-        }
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error creating product' }, { status: 500 });
-    }
+// Crear producto
+export async function POST(request: NextRequest) {
+    return await createModel({
+        model: Product,
+        validationSchema: ProductObjectSchema,
+        request: request,
+        uniqueField: 'name',
+    });
 }
 
-// Get products
+// Obtener productos
 export async function GET(request: Request) {
     try {
-        // Get query params
+        // Obtener parámetros de consulta
         const { searchParams } = new URL(request.url);
         const withoutInventory = searchParams.get('withoutInventory');
 
@@ -61,27 +46,7 @@ export async function GET(request: Request) {
     }
 }
 
-// Delete multiple products
-export async function DELETE(request: Request) {
-    try {
-        const { ids } = await request.json();
-
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return NextResponse.json({ error: 'No product IDs provided' }, { status: 400 });
-        }
-
-        const deletedCount = await Product.destroy({
-            where: {
-                id: ids
-            }
-        });
-
-        return NextResponse.json({
-            message: `${deletedCount} products deleted successfully`,
-            deletedCount
-        });
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting products' }, { status: 500 });
-    }
+// Eliminar productos
+export async function DELETE(request: NextRequest) {
+    return await deleteModels(Product, request);
 }

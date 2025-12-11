@@ -5,14 +5,14 @@ export async function GET() {
     try {
 
         /*
-        statistics:
-        - products by brand (Pie Chart)
-        - products by state (Pie Chart)
-        - entry by month (Line Chart)
-        - cost by month (Line Chart)
+        statisticas:
+        - productos por marca (Pie Chart)
+        - productos por estado (Pie Chart)
+        - entrada por mes (Line Chart)
+        - costo por mes (Line Chart)
         */
 
-        // ordered by entry_date
+        // ordenado por fecha de entrada
         const stockDetails = await StockDetails.findAll({
             include: [
                 {
@@ -44,7 +44,7 @@ export async function GET() {
             return NextResponse.json({ error: "Stock details not found" }, { status: 404 });
         }
 
-        // Products by brand (Pie Chart)
+        // Productos por marca (Pie Chart)
         let productsByBrand = [];
         let productsByBrandMap: any = {};
 
@@ -61,7 +61,7 @@ export async function GET() {
             label: brand,
         }));
 
-        // Products by state (Pie Chart)
+        // Productos por estado (Pie Chart)
         let productsByState = [];
         let productsByStateMap: any = {};
 
@@ -79,7 +79,7 @@ export async function GET() {
         }));
 
 
-        // Costs aggregated by month for line chart (Line Chart)
+        // Costos agregados por mes para el gráfico de líneas (Line Chart)
         const monthlyCostMap: Record<string, number> = {};
         stockDetails.forEach(details => {
             const date = new Date(details.entry_date);

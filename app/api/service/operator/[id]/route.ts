@@ -1,50 +1,27 @@
 import { Operator } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
+import { OperatorSchema } from "@/lib/definitions";
 
-// Get operator by id
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const operator = await Operator.findByPk(id);
-        return NextResponse.json(operator);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting operator' }, { status: 500 });
-    }
+// Obtener operador
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(Operator, params);
 }
 
-// Update operator
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { name, lastname, phone, address, avatar } = await request.json();
-
-        const operator = await Operator.findByPk(id);
-        if (!operator) {
-            return NextResponse.json({ error: 'Operator not found' }, { status: 404 });
-        }
-
-        await operator.update({ name, lastname, phone, address, avatar });
-        return NextResponse.json(operator);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error updating operator' }, { status: 500 });
-    }
+// Actualizar operador
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: Operator,
+        params,
+        request,
+        validationSchema: OperatorSchema,
+    });
 }
 
-// Delete operator
+// Eliminar operador
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const operator = await Operator.findByPk(id);
-        if (!operator) {
-            return NextResponse.json({ error: 'Operator not found' }, { status: 404 });
-        }
-        await operator.destroy();
-        return NextResponse.json(operator);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting operator' }, { status: 500 });
-    }
+    return await deleteModel(Operator, params);
 }
 

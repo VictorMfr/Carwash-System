@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { handleServerError } from "@/lib/error";
 import { getOperatorPaymentPercentage, setOperatorPaymentPercentage } from "@/services/backend/config/settings";
 
+// Obtener configuración de pagos
 export async function GET() {
     try {
         const percentage = await getOperatorPaymentPercentage();
@@ -11,6 +12,7 @@ export async function GET() {
     }
 }
 
+// Actualizar configuración de pagos
 export async function PUT(request: Request) {
     try {
         const { operatorPaymentPercentage } = await request.json();

@@ -2,6 +2,7 @@
 import db from './backend/db';
 import './backend/models/associations';
 import createAccess from './backend/config/createAccess';
+import { seedComprehensiveTestData } from './backend/test/seedData';
 
 export const DB_CONNECTION_MESSAGES = {
     SUCCESS: 'Conexion a la base de datos exitosa',
@@ -10,6 +11,8 @@ export const DB_CONNECTION_MESSAGES = {
 
 async function dbConfig() {
     await createAccess();
+    await seedComprehensiveTestData();
+    
 }
 
 export async function initDatabase() {

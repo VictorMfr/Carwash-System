@@ -6,6 +6,7 @@ type Settings = {
     loyaltyWeights?: { a: number; b: number; c: number };
     delinquencyWeights?: { a: number; b: number };
     marketingEligibility?: { promotionMin: number; reminderMin: number };
+    financeAccountId?: number | null;
 };
 
 const SETTINGS_PATH = path.join(process.cwd(), 'services', 'backend', 'config', 'settings.json');
@@ -19,6 +20,7 @@ async function ensureSettingsFile(): Promise<void> {
             loyaltyWeights: { a: 1 / 3, b: 1 / 3, c: 1 / 3 },
             delinquencyWeights: { a: 0.5, b: 0.5 },
             marketingEligibility: { promotionMin: 0.7, reminderMin: 0.6 },
+            financeAccountId: null,
         };
         await fs.mkdir(path.dirname(SETTINGS_PATH), { recursive: true });
         await fs.writeFile(SETTINGS_PATH, JSON.stringify(defaultSettings, null, 2), 'utf8');
@@ -89,4 +91,19 @@ export async function setMarketingWeights(payload: { loyaltyWeights?: { a: numbe
     }
 
     await fs.writeFile(SETTINGS_PATH, JSON.stringify(parsed, null, 2), 'utf8');
+}
+
+export async function getFinanceSettings(): Promise<{ financeAccountId: number | null }> {
+    await ensureSettingsFile();
+    const raw = await fs.readFile(SETTINGS_PATH, "utf8");
+    const parsed: Settings = JSON.parse(raw);
+    return { financeAccountId: parsed.financeAccountId ?? null };
+}
+
+export async function setFinanceSettings(payload: { financeAccountId: number | null }): Promise<void> {
+    await ensureSettingsFile();
+    const raw = await fs.readFile(SETTINGS_PATH, "utf8");
+    const parsed: Settings = JSON.parse(raw);
+    parsed.financeAccountId = payload.financeAccountId ?? null;
+    await fs.writeFile(SETTINGS_PATH, JSON.stringify(parsed, null, 2), "utf8");
 }

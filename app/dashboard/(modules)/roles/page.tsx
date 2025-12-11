@@ -1,6 +1,6 @@
 import RolesPage from "@/components/Role/RolesPage";
 
-// Server side component
+// Componente de servidor
 export default function RolePageServer() {
     return <RolesPage/>;
 }

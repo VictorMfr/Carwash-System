@@ -1,6 +1,6 @@
 import MethodsPage from "@/components/Method/MethodsPage";
 
-// Server side component
+// Componente de servidor
 export default function MethodPageServer() {
     return <MethodsPage/>;
 }

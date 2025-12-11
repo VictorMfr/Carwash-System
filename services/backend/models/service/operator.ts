@@ -18,6 +18,7 @@ import {
 } from 'sequelize';
 import db from '../../db';
 import Service from './service';
+import ServiceOperator from './serviceOperator';
 
 class Operator extends Model<InferAttributes<Operator>, InferCreationAttributes<Operator>> {
     declare id: CreationOptional<number>;
@@ -29,6 +30,7 @@ class Operator extends Model<InferAttributes<Operator>, InferCreationAttributes<
 
     // Many-to-many relationship with Service
     declare Services: NonAttribute<Service[]>;
+    declare ServiceOperator?: NonAttribute<ServiceOperator>;
     declare getServices: BelongsToManyGetAssociationsMixin<Service>;
     declare countServices: BelongsToManyCountAssociationsMixin;
     declare hasService: BelongsToManyHasAssociationMixin<Service, number>;

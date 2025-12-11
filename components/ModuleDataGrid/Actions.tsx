@@ -54,7 +54,17 @@ const initialActionModal: ActionModal = {
     action: null
 }
 
-const RenderActions = ({ datagridCtx, params, setActionModal }: { datagridCtx: DataGridContextType, params: GridRenderCellParams, setActionModal: (actionModal: ActionModal) => void }) => {
+const RenderActions = ({
+    datagridCtx,
+    params,
+    setActionModal,
+    uiContext,
+}: {
+    datagridCtx: DataGridContextType;
+    params: GridRenderCellParams;
+    setActionModal: (actionModal: ActionModal) => void;
+    uiContext: UIDisplayControlsContextType;
+}) => {
     const actions = datagridCtx.moduleSettings?.actions?.data;
     if (!actions) return null;
 
@@ -62,6 +72,23 @@ const RenderActions = ({ datagridCtx, params, setActionModal }: { datagridCtx: D
         <Fragment>
             {actions.map((action) => {
                 if (action.dispatchMode === 'link') {
+                    if (action.onClick) {
+                        return (
+                            <Tooltip key={action.name} title={action.name}>
+                                <IconButton
+                                    onClick={() =>
+                                        action.onClick?.({
+                                            uiContext,
+                                            datagridCtx,
+                                            params,
+                                        })
+                                    }
+                                >
+                                    <action.icon params={params} />
+                                </IconButton>
+                            </Tooltip>
+                        );
+                    }
                     return (
                         <Fragment key={action.name}>
                             <action.icon params={params} />
@@ -124,7 +151,8 @@ export default function ModuleActions({
             <RenderActions
                 datagridCtx={datagridCtx}
                 params={params}
-                setActionModal={setActionModal} 
+                setActionModal={setActionModal}
+                uiContext={uiContext}
             />
 
             <Dialog open={actionModal.open} onClose={() => setActionModal({ open: false, action: null })}>

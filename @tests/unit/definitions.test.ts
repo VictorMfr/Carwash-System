@@ -1,5 +1,8 @@
 /** @jest-environment node */
-import { z } from 'zod';
+
+/**
+ * Utilidades para validación de schemas
+ */
 import { UserObjectCreateSchema, ProductObjectSchema, BrandObjectSchema, AccountObjectSchema } from '@/lib/definitions';
 
 describe('Utilidades - Validación de schemas', () => {

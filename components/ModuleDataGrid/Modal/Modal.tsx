@@ -23,23 +23,22 @@ export default function ModuleDataGridModal() {
         (controller.modal.type === 'add')
     );
 
-    let filteredData: FormDataField[] = [];
-
-    if (data.stepper) {
-        data.stepper.steps.forEach(step => {
-            step.data.forEach(field => {
-                if (filterCondition(field)) {
-                    filteredData.push(field);
-                }
-            });
-        });
-    } else {
-        data.data?.forEach(field => {
-            if (filterCondition(field)) {
-                filteredData.push(field);
+    // Construye settings filtrados para respetar hideIfUpdate en modo edición
+    const filteredSettings = data.stepper
+        ? {
+            ...data,
+            stepper: {
+                ...data.stepper,
+                steps: data.stepper.steps.map(step => ({
+                    ...step,
+                    data: step.data.filter(filterCondition)
+                }))
             }
-        });
-    }
+        }
+        : {
+            ...data,
+            data: (data.data ?? []).filter(filterCondition)
+        };
 
     return (
         <Dialog
@@ -53,15 +52,15 @@ export default function ModuleDataGridModal() {
                     {description}
                 </DialogContentText>
                 <ModuleForm
-                    settings={data}
+                    settings={filteredSettings}
                     formValue={controller.formValue}
                     onChangeFormData={controller.setFormValue}
-                    onCancel={data.stepper ? controller.handleClose : undefined}
-                    onSubmit={data.stepper ? controller.handleSubmit : undefined}
+                    onCancel={filteredSettings.stepper ? controller.handleClose : undefined}
+                    onSubmit={filteredSettings.stepper ? controller.handleSubmit : undefined}
                     loading={controller.loading}
                 />
             </DialogContent>
-            {data.data && <DialogActions>
+            {filteredSettings.data && <DialogActions>
                 <Button onClick={controller.handleClose}>Cancelar</Button>
                 <Button
                     onClick={controller.handleSubmit}

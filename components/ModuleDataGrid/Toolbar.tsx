@@ -1,11 +1,12 @@
 import { Tooltip } from "@mui/material";
-import QuickFilterSearch from "../Toolbar/Search";
-import { ColumnsPanelTrigger, ToolbarButton, ExportCsv, ExportPrint, FilterPanelTrigger, GridViewColumnIcon, Toolbar, GridRowSelectionModel, ToolbarProps } from "@mui/x-data-grid";
-import { FileDownload, Print, FilterList, DensityMedium, Add, Delete } from "@mui/icons-material";
+
+import { QuickFilter, ColumnsPanelTrigger, ToolbarButton, ExportCsv, ExportPrint, FilterPanelTrigger, GridViewColumnIcon, Toolbar, GridRowSelectionModel, ToolbarProps, QuickFilterTrigger } from "@mui/x-data-grid";
+import { FileDownload, Print, FilterList, DensityMedium, Add, Delete, Search } from "@mui/icons-material";
 import { UIDisplayControlsContextType, useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import api from "@/lib/axios";
 import { ModuleFormGridData, ToolbarItem } from "../../types/datagrid/datagrid";
 import { useModuleDataGridContext } from "./context";
+import QuickFilterSearch from "./Search";
 
 const shouldShowToolbarItem = (item: ToolbarItem, moduleSettings: ModuleFormGridData) => {
     const settings = moduleSettings;
@@ -64,6 +65,8 @@ const bulkDelete = (
     });
 }
 
+
+
 export default function ModuleToolbar({
     rowSelected,
 }: {
@@ -89,7 +92,7 @@ export default function ModuleToolbar({
         <Toolbar>
             {shouldShowToolbarItem('quickFilter', datagridCtx.moduleSettings) && (
                 <Tooltip title="Quick Filter">
-                    <QuickFilterSearch />
+                    <QuickFilterSearch/>
                 </Tooltip>
             )}
             {shouldShowToolbarItem('columns', datagridCtx.moduleSettings) && (
@@ -163,7 +166,15 @@ export default function ModuleToolbar({
             )}
             {datagridCtx.moduleSettings.config?.toolbar?.data?.map((item) => (
                 <Tooltip title={item.name} key={item.name}>
-                    <ToolbarButton>
+                    <ToolbarButton
+                        onClick={() =>
+                            item.onClick?.({
+                                uiContext,
+                                datagridCtx,
+                                rowSelected,
+                            })
+                        }
+                    >
                         <item.icon fontSize="small" />
                     </ToolbarButton>
                 </Tooltip>

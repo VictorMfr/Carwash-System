@@ -97,7 +97,7 @@ export default function CartField({
                     <Typography variant="caption">{`(${dataField.inputConfig.cart?.optional})`}</Typography>
                 </Grid>
             )}
-            <Grid size={{ xs: 6, md: 4 }}>
+            <Grid size={12}>
                 <AutoCompleteField
                     dataField={dataField.inputConfig?.cart!.autocomplete}
                     onChange={changeProductHandler}
@@ -105,7 +105,7 @@ export default function CartField({
                 />
                 <FormHelperText error={!!productError}>{productError}</FormHelperText>
             </Grid>
-            <Grid size={{ xs: 6, md: 4 }}>
+            <Grid size={6}>
                 <NumberField
                     dataField={dataField.inputConfig?.cart!.number}
                     onChange={changeQuantityHandler}
@@ -113,7 +113,7 @@ export default function CartField({
                 />
                 <FormHelperText error={!!quantityError}>{quantityError}</FormHelperText>
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={6}>
                 <Button
                     variant="contained"
                     color="primary"

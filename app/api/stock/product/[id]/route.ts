@@ -1,50 +1,26 @@
 import { Product } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import { ProductObjectSchema } from "@/lib/definitions";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
 
-// Get product by id
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const product = await Product.findByPk(id);
-        return NextResponse.json(product);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting product' }, { status: 500 });
-    }
+// Obtener producto por id
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(Product, params);
 }
 
-// Update product
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { name, unit, isTool } = await request.json();
-
-        const product = await Product.findByPk(id);
-
-        if (!product) {
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-        }
-
-        await product.update({ name, unit, isTool });
-        return NextResponse.json(product);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error updating product' }, { status: 500 });
-    }
+// Actualizar producto
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: Product,
+        params: params,
+        request: request,
+        validationSchema: ProductObjectSchema,
+    });
 }
 
-// Delete product
+// Eliminar producto
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const product = await Product.findByPk(id);
-        if (!product) {
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-        }
-        await product.destroy();
-        return NextResponse.json(product);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting product' }, { status: 500 });
-    }
+    return await deleteModel(Product, params);
 }

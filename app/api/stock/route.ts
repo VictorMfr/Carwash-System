@@ -1,16 +1,19 @@
+import deleteModels from "@/lib/apiUtils/model/deleteModels";
+import getModels from "@/lib/apiUtils/model/getModels";
+import { handleServerError } from "@/lib/error";
 import { decrypt, getSession } from "@/lib/session";
 import { Product, Stock, StockDetails, User } from "@/services/backend/models/associations";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
-// Create stock
-export async function POST(request: Request) {
+// Crear stock
+export async function POST(request: NextRequest) {
     try {
         const data = await request.json();
-        console.log(data);  
 
         const product = data.product;
         const minimum_quantity = Number(data.minimum_quantity);
-        
+
         if (!product || !minimum_quantity) {
             return NextResponse.json({ error: 'Product and minimum_quantity are required' }, { status: 400 });
         }
@@ -19,7 +22,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Product not found' }, { status: 400 });
         }
 
-        // Get user id from session
+        // Obtener id de usuario desde sesión
         const session = await getSession();
 
         if (!session) {
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'User not found' }, { status: 400 });
         }
 
-        // Prevent associating a product that already has an inventory
+        // Prevenir asociar un producto que ya tiene un inventario
         const existing = await Stock.findOne({
             include: [{ model: Product, as: 'Product', where: { id: product.id } }]
         });
@@ -50,72 +53,47 @@ export async function POST(request: Request) {
             minimum_quantity
         });
 
-
-
         await stock.setProduct(product.id);
         await stock.setUser(user.id);
 
-        // Return the stock with the product and user
+        // Retornar el stock con el producto y el usuario
         const formatted = {
             ...stock.toJSON(),
             product: product.name,
             unit: product.unit,
         };
 
-        console.log(formatted);
-
         return NextResponse.json(formatted);
-
     } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error creating stock' }, { status: 500 });
+        return handleServerError(error);
     }
 }
 
-// Get stocks
+// Obtener stocks
 export async function GET() {
-    try {
-        const stocks = await Stock.findAll({
-            include: [{
-                model: Product,
-                as: 'Product',
-                attributes: ['name', 'unit'],
-            }, {
-                model: StockDetails,
-                as: 'StockDetails',
-                attributes: ['quantity', 'price'],
-            }]
-        });
-
-        const formatted = stocks.map((s: Stock) => {
+    return await getModels(Stock, {
+        include: [{
+            model: Product,
+            as: 'Product',
+            attributes: ['name', 'unit'],
+        }, {
+            model: StockDetails,
+            as: 'StockDetails',
+            attributes: ['quantity'],
+        }]
+    }, async (stocks: Stock[]) => {
+        return stocks.map((s: Stock) => {
             const json: any = s.toJSON();
-
             return {
                 ...json,
                 product: json.Product.name,
                 unit: json.Product.unit,
-                total_quantity: json.StockDetails.reduce((acc: number, curr: StockDetails) => acc + curr.quantity, 0),
             }
         });
-
-        return NextResponse.json(formatted);
-    } catch (error) {
-        return NextResponse.json({ error: 'Error getting stocks' }, { status: 500 });
-    }
+    });
 }
 
-// Delete multiple stocks
-export async function DELETE(request: Request) {
-    try {
-        const { ids } = await request.json();
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return NextResponse.json({ error: 'No stock IDs provided' }, { status: 400 });
-        }
-        const deletedCount = await Stock.destroy({ where: { id: ids } });
-        return NextResponse.json({ message: `${deletedCount} stocks deleted successfully`, deletedCount });
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting stocks' }, { status: 500 });
-    }
+// Eliminar stocks
+export async function DELETE(request: NextRequest) {
+    return await deleteModels(Stock, request);
 }
-

@@ -1,9 +1,14 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de transacciones
+ */
+
 import { GET as GETTransactions, POST as POSTTransaction } from "@/app/api/finance/route";
 
 // Only test GET and that POST without session yields error
-describe('Finance - Transactions', () => {
-  test('GET transactions', async () => {
+describe('Transacciones', () => {
+  test('Obtener transacciones', async () => {
     const res = await GETTransactions({ url: 'http://localhost' } as any);
     expect(res.status).toBe(200);
   });

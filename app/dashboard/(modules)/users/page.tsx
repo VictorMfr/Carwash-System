@@ -1,6 +1,6 @@
 import UsersPage from "@/components/User/UsersPage";
 
-// Server side component
+// Componente de servidor
 export default function UsersPageServer () {
     return <UsersPage />;
 }

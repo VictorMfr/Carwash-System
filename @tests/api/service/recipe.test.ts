@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de receta
+ */
 import { POST, GET, DELETE } from "@/app/api/service/recipe/route";
 import { GET as GETRecipe, PUT as PUTRecipe, DELETE as DELETERecipe } from "@/app/api/service/recipe/[id]/route";
 import { Recipe } from "@/services/backend/models/associations";

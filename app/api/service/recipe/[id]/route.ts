@@ -1,50 +1,27 @@
+import { RecipeSchema } from "@/lib/definitions";
 import { Recipe } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
 
-// Get recipe by id
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const recipe = await Recipe.findByPk(id);
-        return NextResponse.json(recipe);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting recipe' }, { status: 500 });
-    }
+// Obtener receta por id
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(Recipe, params);
 }
 
-// Update recipe
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { name } = await request.json();
-
-        const recipe = await Recipe.findByPk(id);
-        if (!recipe) {
-            return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
-        }
-
-        await recipe.update({ name });
-        return NextResponse.json(recipe);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error updating recipe' }, { status: 500 });
-    }
+// Actualizar receta
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: Recipe,
+        params,
+        request,
+        validationSchema: RecipeSchema,
+    });
 }
 
-// Delete recipe
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const recipe = await Recipe.findByPk(id);
-        if (!recipe) {
-            return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
-        }
-        await recipe.destroy();
-        return NextResponse.json(recipe);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting recipe' }, { status: 500 });
-    }
+// Eliminar receta
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await deleteModel(Recipe, params);
 }
 

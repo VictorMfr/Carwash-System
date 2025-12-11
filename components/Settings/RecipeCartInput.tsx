@@ -8,7 +8,11 @@ import api from "@/lib/axios";
 import withUIDisplayControls from "@/HOC/withUIDisplayControls";
 import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import { StockSchema } from "@/lib/definitions";
-import { StockModule } from "../Stock/StockPage";
+import StockModule from "../Stock/config/StockModule";
+import { AccountFormData } from "../Account/config";
+import getDollarRate from "@/lib/dollar";
+
+const dollarRate = await getDollarRate();
 
 const recipeNameField: FormDataField = {
     field: 'recipeName',
@@ -65,9 +69,9 @@ const cartField: FormDataField = {
                                         {
                                             title: 'Llena los campos',
                                             description: 'Llena los campos para agregar un nuevo stock',
-                                            label: 'Llena los campos',
+                                            label: 'Datos del stock',
                                             config: {
-                                                gridSpacing: 2,
+                                                gridSpacing: 2
                                             },
                                             data: [
                                                 {
@@ -100,28 +104,17 @@ const cartField: FormDataField = {
                                                     field: 'quantity',
                                                     headerName: 'Cantidad',
                                                     inputConfig: {
-                                                        size: 12,
+                                                        size: 6,
                                                         id: 'quantity',
                                                         number: {}
                                                     },
                                                 },
-                                                {
-                                                    field: 'price',
-                                                    headerName: 'Precio',
-                                                    inputConfig: {
-                                                        size: 12,
-                                                        id: 'price',
-                                                        number: {
-                                                            adornment: () => <>$</>,
-                                                            adornmentPosition: 'start'
-                                                        }
-                                                    },
-                                                },
+
                                                 {
                                                     field: 'entry_date',
                                                     headerName: 'Fecha de entrada',
                                                     inputConfig: {
-                                                        size: 12,
+                                                        size: 6,
                                                         id: 'entry_date',
                                                         date: {}
                                                     },
@@ -130,7 +123,7 @@ const cartField: FormDataField = {
                                                     field: 'brand',
                                                     headerName: 'Marca',
                                                     inputConfig: {
-                                                        size: 12,
+                                                        size: 6,
                                                         id: 'brand',
                                                         autocomplete: {
                                                             url: '/api/stock/brand',
@@ -151,7 +144,7 @@ const cartField: FormDataField = {
                                                     field: 'state',
                                                     headerName: 'Estado',
                                                     inputConfig: {
-                                                        size: 12,
+                                                        size: 6,
                                                         id: 'state',
                                                         autocomplete: {
                                                             url: '/api/stock/state',
@@ -170,6 +163,114 @@ const cartField: FormDataField = {
                                             ]
                                         },
                                         {
+                                            label: 'Datos financieros',
+                                            title: 'Datos financieros',
+                                            description: 'Datos financieros del stock',
+                                            config: {},
+                                            data: [
+
+                                                {
+                                                    field: 'charge_switch',
+                                                    headerName: 'Monto en dolares',
+                                                    inputConfig: {
+                                                        size: 6,
+                                                        id: 'charge_switch',
+                                                        switch: {
+                                                            label: 'Monto en dolares',
+                                                            swapIds: [
+                                                                {
+                                                                    id: 'bol_charge',
+                                                                    value: {
+                                                                        field: 'dollar_charge',
+                                                                        headerName: 'Monto en dolares',
+                                                                        inputConfig: {
+                                                                            size: 12,
+                                                                            id: 'dollar_charge',
+                                                                            number: { adornment: () => <>$</>, adornmentPosition: 'start' }
+                                                                        },
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    field: 'rate_switch',
+                                                    headerName: 'Tasa de cambio BCV',
+                                                    inputConfig: {
+                                                        size: 6,
+                                                        id: 'rate_switch',
+                                                        switch: { label: 'Tasa de cambio BCV', disableIds: [{ id: 'dollar_rate', value: dollarRate[0].promedio }] }
+                                                    }
+                                                },
+                                                {
+                                                    field: 'bol_charge',
+                                                    headerName: 'Monto en bolívares',
+                                                    inputConfig: { size: 6, id: 'bol_charge', number: { adornment: () => <>Bs</>, adornmentPosition: 'start' } }
+                                                },
+
+                                                {
+                                                    field: 'dollar_rate',
+                                                    headerName: 'Tasa de cambio',
+                                                    inputConfig: { size: 6, id: 'dollar_rate', number: { adornment: () => <>Bs/$</>, adornmentPosition: 'start' } }
+                                                },
+                                                {
+                                                    field: 'charge_account',
+                                                    headerName: 'Cuenta a cobrar',
+                                                    inputConfig: {
+                                                        size: 6,
+                                                        id: 'charge_account',
+                                                        autocomplete: {
+                                                            url: '/api/finance/account',
+                                                            label: 'Cuenta a cobrar',
+                                                            loadingType: 'screen',
+                                                            newItemLabel: 'Agregar cuenta a cobrar',
+                                                            labelField: 'name',
+                                                            config: {
+                                                                create: {
+                                                                    description: 'Agregar cuenta a cobrar',
+                                                                    name: 'Agregar cuenta a cobrar',
+                                                                }
+                                                            },
+                                                            formData: {
+                                                                createFillField: 'name',
+                                                                columns: {
+
+                                                                    data: AccountFormData.data
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                },
+                                                {
+                                                    field: 'method',
+                                                    headerName: 'Método de pago',
+                                                    inputConfig: {
+                                                        size: 6,
+                                                        id: 'method',
+                                                        autocomplete: {
+                                                            url: '/api/finance/method',
+                                                            label: 'Método de pago',
+                                                            loadingType: 'screen',
+                                                            newItemLabel: 'Agregar método de pago',
+                                                            labelField: 'name',
+                                                            config: {
+                                                                create: {
+                                                                    description: 'Agregar método de pago',
+                                                                    name: 'Agregar cuenta a cobrar',
+                                                                }
+                                                            },
+                                                            confirm: {
+                                                                title: 'Agregar método de pago',
+                                                                message: '¿Estás seguro de querer agregar este método de pago?',
+                                                                successMessage: 'Método de pago agregado correctamente',
+                                                            }
+                                                        }
+                                                    },
+                                                },
+                                            ]
+                                        },
+                                        {
                                             title: 'Agrega una imagen',
                                             description: 'Agrega una imagen al stock',
                                             label: 'Agrega una imagen',
@@ -183,11 +284,7 @@ const cartField: FormDataField = {
                                                     inputConfig: {
                                                         size: 12,
                                                         id: 'picture',
-                                                        picture: {
-                                                            title: 'Imagen',
-                                                            description: 'Agrega una imagen al stock',
-                                                            suggestion: 'Sube una imagen para el stock',
-                                                        },
+                                                        picture: {},
                                                     },
                                                 }
                                             ]

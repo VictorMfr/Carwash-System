@@ -1,53 +1,26 @@
 import { User } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
-import { handleServerError } from "@/lib/error";
-import { UserUpdateSchema } from "@/lib/definitions";
+import { NextRequest } from "next/server";
+import { UserObjectUpdateSchema } from "@/lib/definitions";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
 
-// Get user by id
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const user = await User.findByPk(id);
-        return NextResponse.json(user);
-    } catch (error) {
-        return handleServerError(error);
-    }
+// Obtener usuario por id
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(User, params);
 }
 
-// Update user
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const body = await request.json();
-        const { name, lastname, phone, address, email } = UserUpdateSchema.parse(body);
-
-        const user = await User.findByPk(id);
-
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
-
-        await user.update({ name, lastname, phone, address, email });
-        return NextResponse.json(user);
-    } catch (error) {
-        console.log('ESTE ES EL ERROR', error);
-        return handleServerError(error);
-    }
+// Actualizar usuario
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: User,
+        params: params,
+        request: request,
+        validationSchema: UserObjectUpdateSchema,
+    });
 }
 
-// Delete user
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        console.log('ESTE ES EL VALOR DE ID', id);
-        const user = await User.findByPk(id);
-        
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
-        await user.destroy();
-        return NextResponse.json(user);
-    } catch (error) {
-        return handleServerError(error);
-    }
+// Eliminar usuario
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await deleteModel(User, params);
 }

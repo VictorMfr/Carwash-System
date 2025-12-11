@@ -1,50 +1,27 @@
 import { State } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import { NextRequest } from "next/server";
+import { StateObjectSchema } from "@/lib/definitions";
 
-// Get state by id
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const state = await State.findByPk(id);
-        return NextResponse.json(state);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting state' }, { status: 500 });
-    }
+// Obtener estado por id
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(State, params);
 }
 
-// Update state
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { name } = await request.json();
-
-        const state = await State.findByPk(id);
-        if (!state) {
-            return NextResponse.json({ error: 'State not found' }, { status: 404 });
-        }
-
-        await state.update({ name });
-        return NextResponse.json(state);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error updating state' }, { status: 500 });
-    }
+// Actualizar estado
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: State,
+        params: params,
+        request: request,
+        validationSchema: StateObjectSchema,
+    });
 }
 
-// Delete state
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const state = await State.findByPk(id);
-        if (!state) {
-            return NextResponse.json({ error: 'State not found' }, { status: 404 });
-        }
-        await state.destroy();
-        return NextResponse.json(state);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting state' }, { status: 500 });
-    }
+// Eliminar estado
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await deleteModel(State, params);
 }
 

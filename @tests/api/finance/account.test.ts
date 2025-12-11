@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de cuenta
+ */
 import { POST, GET, DELETE } from "@/app/api/finance/account/route";
 import { GET as GETAccount, PUT as PUTAccount, DELETE as DELETEAccount } from "@/app/api/finance/account/[id]/route";
 import { Account } from "@/services/backend/models/associations";

@@ -2,18 +2,10 @@ import { NextResponse } from "next/server";
 import Transaction from "@/services/backend/models/finance/transaction";
 import { Op, Sequelize } from "sequelize";
 
-// GET /api/finance/statistics
-// Returns monthly series formatted as arrays of objects compatible with charts
+// Obtener estadísticas financieras
+// Retorna series mensuales formateadas como arrays de objetos compatibles con gráficos
 export async function GET() {
     try {
-
-        /*
-        statistics:
-        - incomes by month (Line Chart)
-        - costs by month (Line Chart)
-        - dollar rate averages by month (Line Chart)
-        */
-
         const sequelize = (Transaction as any).sequelize as Sequelize;
 
 
@@ -25,7 +17,7 @@ export async function GET() {
 
         const transactions = await Transaction.findAll({ raw: true });
 
-        // Aggregate in JS for portability
+        // Agrupar en JS para portabilidad
         const byMonth: Record<string, { income: number; cost: number; dolarAvgSum: number; dolarAvgCount: number }>
             = {};
 

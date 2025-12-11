@@ -5,13 +5,14 @@ import {  FormData, FormDataField, FormDataInputConfig, Stepper, StepperStep } f
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { SvgIconTypeMap } from "@mui/material";
+import { GridProps } from "@mui/material";
 
 export type ToolbarItem = 'export' | 'filter' | 'columns' | 'density' | 'quickFilter' | 'add' | 'delete';
 export type ColumnData = FormDataField & {
 	field: string;
 	headerName: string;
 	inputConfig: {
-		size: number;
+		size: number | GridProps['size'];
 		dataGridHidden?: boolean;
 		hideIfUpdate?: boolean;
 	} & FormDataInputConfig,
@@ -52,6 +53,7 @@ export interface ModuleFormGridData extends Module {
 				actionModal: { open: boolean, action: any, data: any }
 			}>;
 			dispatchMode?: 'modal' | 'link';
+			onClick?: (args: Record<string, any>) => void;
 		}[];
 	},
 	config?: {
@@ -66,6 +68,7 @@ export interface ModuleFormGridData extends Module {
 					actionModal: { open: boolean, action: any, data: any }
 				}>;
 				dispatchMode?: 'modal' | 'link';
+				onClick?: (args: Record<string, any>) => void;
 			}[];
 			show?: ToolbarItem[];
 		}

@@ -9,17 +9,17 @@ export async function POST(request: NextRequest) {
     console.log(email, newPassword);
 
     if (!email || !newPassword) {
-      console.log('Email and new password are required');
+      console.log('Correo electrónico y nueva contraseña son requeridos');
       return NextResponse.json(
-        { error: 'Email and new password are required' },
+        { error: 'Correo electrónico y nueva contraseña son requeridos' },
         { status: 400 }
       );
     }
 
     if (newPassword.length < 6) {
-      console.log('Password must be at least 6 characters long');
+      console.log('La contraseña debe tener al menos 6 caracteres');
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters long' },
+        { error: 'La contraseña debe tener al menos 6 caracteres' },
         { status: 400 }
       );
     }
@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     // Update user password
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      console.log('User not found');
-      return NextResponse.json({ error: 'User not found' }, { status: 400 });
+      console.log('Usuario no encontrado');
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -36,13 +36,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Password reset successfully' 
+      message: 'Contraseña restablecida correctamente' 
     });
 
   } catch (error) {
-    console.error('Error resetting password:', error);
+    console.error('Error al restablecer la contraseña:', error);
     return NextResponse.json(
-      { error: 'Failed to reset password' },
+      { error: 'Error al restablecer la contraseña' },
       { status: 500 }
     );
   }

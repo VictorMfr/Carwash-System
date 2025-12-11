@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { Product, State, Stock, StockDetails, Brand } from "@/services/backend/models/associations";
 import { Dayjs } from "dayjs";
 
-// List all stockDetails for tool products with their related Product, Brand, and State
+// Listar todos los stockDetails para productos de herramientas con sus relacionados Product, Brand, y State
 export async function GET() {
     try {
         const stockDetails = await StockDetails.findAll({
-            attributes: ['id', 'quantity', 'price', 'entry_date', 'picture'],
+            // 'price' no existe en el modelo de StockDetails, así que no lo pedimos aquí
+            attributes: ['id', 'quantity', 'entry_date', 'picture'],
             include: [
                 {
                     model: Stock,

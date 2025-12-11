@@ -1,9 +1,14 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de vehículos por cliente
+ */
+
 import { GET as GETClientVehicles } from "@/app/api/client/[id]/vehicles/route";
 import { Client, Vehicle, VehicleBrand, VehicleModel } from "@/services/backend/models/associations";
 
-describe('Client - Vehicles by client', () => {
-  test('GET vehicles by client id', async () => {
+describe('Vehiculos por cliente', () => {
+  test('Obtener vehículos por id de cliente', async () => {
     const client = await Client.create({ name: 'Veh', lastname: 'Client', phone: '7777777777' });
     const brand = await VehicleBrand.create({ name: 'BrandX' });
     const model = await VehicleModel.create({ name: 'ModelY' });

@@ -1,6 +1,6 @@
 import ProductsPage from "@/components/Product/ProductsPage";
 
-// Server side component
+// Componente de servidor
 export default function ProductPageServer() {
     return <ProductsPage/>;
 }

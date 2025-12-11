@@ -1,9 +1,8 @@
-import { TransactionContextType } from "@/components/Transaction/ContextProvider";
 import api from "@/lib/axios";
 import { Transaction } from "@/services/backend/models/associations";
 import { useEffect, useState } from "react";
 
-export default function useFetchTransactions(context?: TransactionContextType) {
+export default function useFetchTransactions(context?: any) {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loadingTransactions, setLoadingTransactions] = useState(false);
 

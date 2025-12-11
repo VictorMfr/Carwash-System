@@ -1,4 +1,8 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de producto
+ */
 import { POST, GET, DELETE } from "@/app/api/stock/product/route";
 import { GET as GETProduct, PUT as PUTProduct, DELETE as DELETEProduct } from "@/app/api/stock/product/[id]/route";
 import { Product } from "@/services/backend/models/associations";

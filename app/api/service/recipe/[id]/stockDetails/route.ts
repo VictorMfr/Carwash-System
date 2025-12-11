@@ -1,9 +1,9 @@
 import { handleServerError } from "@/lib/error";
-import { Brand, Product, Recipe, State, Stock, StockDetails } from "@/services/backend/models/associations";
+import { Brand, Product, State, Stock, StockDetails } from "@/services/backend/models/associations";
 import RecipeStockDetails from "@/services/backend/models/service/recipeStockDetails";
 import { NextResponse } from "next/server";
 
-// Get stock details by recipe id
+// Obtener detalles de stock por id de receta
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const data = await params;

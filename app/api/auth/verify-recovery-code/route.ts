@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !code) {
       return NextResponse.json(
-        { error: 'Email and code are required' },
+        { error: 'Correo electrónico y código son requeridos' },
         { status: 400 }
       );
     }
@@ -17,19 +17,19 @@ export async function POST(request: NextRequest) {
     if (code.length === 6 && /^\d{6}$/.test(code)) {
       return NextResponse.json({ 
         success: true, 
-        message: 'Code verified successfully' 
+        message: 'Código verificado correctamente' 
       });
     } else {
       return NextResponse.json(
-        { error: 'Invalid verification code' },
+        { error: 'Código de verificación inválido' },
         { status: 400 }
       );
     }
 
   } catch (error) {
-    console.error('Error verifying code:', error);
+    console.error('Error al verificar el código:', error);
     return NextResponse.json(
-      { error: 'Failed to verify code' },
+      { error: 'Error al verificar el código' },
       { status: 500 }
     );
   }

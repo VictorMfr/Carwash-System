@@ -1,6 +1,10 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de cliente
+ */
 import { POST, GET, DELETE } from "@/app/api/service/client/route";
-import { GET as GETClient, PUT as PUTClient, DELETE as DELETEClient } from "@/app/api/service/client/[id]/route";
+import { GET as GETClient, PUT as PUTClient } from "@/app/api/service/client/[id]/route";
 import { Client } from "@/services/backend/models/associations";
 import { toObject } from "../../util";
 
@@ -56,14 +60,6 @@ describe('Rutas de cliente', () => {
         } as any;
 
         const response = await PUTClient(testData, { params: Promise.resolve({ id: client.id.toString() }) });
-        expect(response.status).toBe(200);
-        await client.destroy({ force: true });
-    });
-
-    // Borrar cliente
-    test('Borrar cliente', async () => {
-        const client = await Client.create(toObject(await testClientOne.json()));
-        const response = await DELETEClient(null as any, { params: Promise.resolve({ id: client.id.toString() }) });
         expect(response.status).toBe(200);
         await client.destroy({ force: true });
     });

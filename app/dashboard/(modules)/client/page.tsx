@@ -1,6 +1,6 @@
 import ClientsPage from "@/components/Client/ClientsPage";
 
-// Server side component
+// Componente de servidor
 export default function ClientPageServer() {
     return <ClientsPage/>;
 }

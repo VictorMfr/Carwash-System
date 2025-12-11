@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { deleteUploadFile } from "@/lib/pictures";
 import { Stock } from "@/services/backend/models/associations";
 
-// Update stock
+// Actualizar stock
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
@@ -30,32 +30,32 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-// Delete stock
+// Eliminar stock
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        // Get the stock id
+        // Obtener el id del stock
         const { id } = await params;
 
-        // Find the stock
+        // Encontrar el stock
         const stock = await Stock.findByPk(id);
         if (!stock) {
             return NextResponse.json({ error: 'Stock not found' }, { status: 404 });
         }
 
-        // Get all stock details
+        // Obtener todos los detalles de stock
         const stockDetails = await stock.getStockDetails();
 
-        // Delete all stock details
+        // Eliminar todos los detalles de stock
         for (const detail of stockDetails) {
             await detail.destroy();
 
-            // Delete the picture
+            // Eliminar la imagen
             if (detail.picture) {
                 await deleteUploadFile(detail.picture);
             }
         }
 
-        // Delete the stock
+        // Eliminar el stock
         await stock.destroy();
 
         return NextResponse.json({ message: 'Stock deleted successfully' });
@@ -66,7 +66,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
 }
 
-// Get stock by id
+// Obtener stock por id
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;

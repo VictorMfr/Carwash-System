@@ -1,6 +1,6 @@
 import OperatorsPage from "@/components/Operator/OperatorsPage";
 
-// Server side component
+// Componente de servidor
 export default function OperatorPageServer() {
     return <OperatorsPage/>;
 }

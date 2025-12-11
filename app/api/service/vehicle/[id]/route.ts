@@ -1,50 +1,27 @@
+import { VehicleWithUserSchema } from "@/lib/definitions";
 import { Vehicle } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
 
-// Get vehicle by id
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const vehicle = await Vehicle.findByPk(id);
-        return NextResponse.json(vehicle);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting vehicle' }, { status: 500 });
-    }
+// Obtener vehículo por id
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await getModel(Vehicle, params);
 }
 
-// Update vehicle
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { license_plate } = await request.json();
-
-        const vehicle = await Vehicle.findByPk(id);
-        if (!vehicle) {
-            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
-        }
-
-        await vehicle.update({ license_plate });
-        return NextResponse.json(vehicle);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error updating vehicle' }, { status: 500 });
-    }
+// Actualizar vehículo
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: Vehicle,
+        params,
+        request,
+        validationSchema: VehicleWithUserSchema,
+    });
 }
 
-// Delete vehicle
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const vehicle = await Vehicle.findByPk(id);
-        if (!vehicle) {
-            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
-        }
-        await vehicle.destroy();
-        return NextResponse.json(vehicle);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting vehicle' }, { status: 500 });
-    }
+// Eliminar vehículo
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await deleteModel(Vehicle, params);
 }
 

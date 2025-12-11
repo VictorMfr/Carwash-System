@@ -1,13 +1,17 @@
 /** @jest-environment node */
+
+/**
+ * Este archivo contiene las pruebas para las rutas de configuración de marketing
+ */
 import { GET as GETConfig, PUT as PUTConfig } from "@/app/api/marketing/config/route";
 
-describe('Marketing - Config', () => {
-  test('GET configuración', async () => {
+describe('Configuración de marketing', () => {
+  test('Obtener configuración', async () => {
     const res = await GETConfig();
     expect(res.status).toBe(200);
   });
 
-  test('PUT configuración', async () => {
+  test('Actualizar configuración', async () => {
     const req = {
       json: async () => ({
         loyaltyWeights: { a: 0.4, b: 0.4, c: 0.2 },

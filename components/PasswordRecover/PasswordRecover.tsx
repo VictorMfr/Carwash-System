@@ -27,19 +27,19 @@ export default function PasswordRecover() {
           <Stack spacing={3}>
             <Box display="flex" alignItems="center" gap={1}>
               <EmailIcon color="primary" />
-              <Typography variant="h6">Enter your email address</Typography>
+              <Typography variant="h6">Ingresa tu correo electrónico</Typography>
             </Box>
             <TextField
               fullWidth
-              label="Email Address"
+              label="Correo electrónico"
               type="email"
               value={controller.email}
               onChange={(e) => controller.setEmail(e.target.value)}
-              placeholder="Enter your registered email"
+              placeholder="Ingresa tu correo electrónico registrado"
               required
             />
             <Typography variant="body2" color="text.secondary">
-              We'll send a verification code to this email address.
+              Te enviaremos un código de verificación a este correo electrónico.
             </Typography>
           </Stack>
         );
@@ -49,19 +49,19 @@ export default function PasswordRecover() {
           <Stack spacing={3}>
             <Box display="flex" alignItems="center" gap={1}>
               <LockIcon color="primary" />
-              <Typography variant="h6">Enter verification code</Typography>
+              <Typography variant="h6">Ingresa el código de verificación</Typography>
             </Box>
             <TextField
               fullWidth
-              label="Verification Code"
+              label="Código de verificación"
               value={controller.verificationCode}
               onChange={(e) => controller.setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter 6-digit code"
+              placeholder="Ingresa el código de verificación de 6 dígitos"
               inputProps={{ maxLength: 6 }}
               required
             />
             <Typography variant="body2" color="text.secondary">
-              Check your email for the 6-digit verification code.
+              Revisa tu correo electrónico para el código de verificación de 6 dígitos.
             </Typography>
           </Stack>
         );
@@ -71,28 +71,28 @@ export default function PasswordRecover() {
           <Stack spacing={3}>
             <Box display="flex" alignItems="center" gap={1}>
               <LockIcon color="primary" />
-              <Typography variant="h6">Create new password</Typography>
+              <Typography variant="h6">Crea una nueva contraseña</Typography>
             </Box>
             <TextField
               fullWidth
-              label="New Password"
+              label="Nueva contraseña"
               type="password"
               value={controller.newPassword}
               onChange={(e) => controller.setNewPassword(e.target.value)}
-              placeholder="Enter new password"
+              placeholder="Ingresa una nueva contraseña"
               required
             />
             <TextField
               fullWidth
-              label="Confirm Password"
+              label="Confirmar contraseña"
               type="password"
               value={controller.confirmPassword}
               onChange={(e) => controller.setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
+              placeholder="Confirma la nueva contraseña"
               required
             />
             <Typography variant="body2" color="text.secondary">
-              Password must be at least 6 characters long.
+              La contraseña debe tener al menos 6 caracteres.
             </Typography>
           </Stack>
         );
@@ -116,11 +116,11 @@ export default function PasswordRecover() {
       <Card sx={{ maxWidth: 600, width: '100%' }}>
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
-            Password Recovery
+            Recuperación de contraseña
           </Typography>
           
           <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
-            Follow the steps below to recover your password
+            Sigue los pasos a continuación para recuperar tu contraseña
           </Typography>
 
           <Stepper activeStep={controller.activeStep} sx={{ mb: 4 }}>
@@ -136,17 +136,17 @@ export default function PasswordRecover() {
               <Box textAlign="center" py={4}>
                 <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
                 <Typography variant="h5" gutterBottom>
-                  Password Reset Complete!
+                  Contraseña restablecida completamente!
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                  Your password has been successfully reset. You can now login with your new password.
+                  Tu contraseña ha sido restablecida correctamente. Ahora puedes iniciar sesión con tu nueva contraseña.
                 </Typography>
                 <Button 
                   variant="contained" 
                   onClick={controller.handleReset}
                   size="large"
                 >
-                  Start Over
+                  Volver a empezar
                 </Button>
               </Box>
             </React.Fragment>
@@ -175,7 +175,7 @@ export default function PasswordRecover() {
                   onClick={controller.handleBack}
                   sx={{ mr: 1 }}
                 >
-                  Back
+                  Atras
                 </Button>
                 <Box sx={{ flex: '1 1 auto' }} />
                 <Button 
@@ -183,7 +183,7 @@ export default function PasswordRecover() {
                   disabled={controller.loading}
                   variant="contained"
                 >
-                  {controller.loading ? 'Processing...' : controller.activeStep === controller.steps.length - 1 ? 'Reset Password' : 'Next'}
+                  {controller.loading ? 'Procesando...' : controller.activeStep === controller.steps.length - 1 ? 'Restablecer contraseña' : 'Siguiente'}
                 </Button>
               </Box>
             </React.Fragment>

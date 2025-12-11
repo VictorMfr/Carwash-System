@@ -1,50 +1,27 @@
 import { Method } from "@/services/backend/models/associations";
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import getModel from "@/lib/apiUtils/model/getModel";
+import updateModel from "@/lib/apiUtils/model/updateModel";
+import deleteModel from "@/lib/apiUtils/model/deleteModel";
+import { MethodObjectSchema } from "@/lib/definitions";
 
-// Get method by id
+// Obtener método
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const method = await Method.findByPk(id);
-        return NextResponse.json(method);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error getting method' }, { status: 500 });
-    }
+    return await getModel(Method, params);
 }
 
-// Update method
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const { name } = await request.json();
-
-        const method = await Method.findByPk(id);
-        if (!method) {
-            return NextResponse.json({ error: 'Method not found' }, { status: 404 });
-        }
-
-        await method.update({ name });
-        return NextResponse.json(method);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error updating method' }, { status: 500 });
-    }
+// Actualizar método
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    return await updateModel({
+        model: Method,
+        params,
+        request,
+        validationSchema: MethodObjectSchema,
+    });
 }
 
-// Delete method
+// Eliminar método
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const { id } = await params;
-        const method = await Method.findByPk(id);
-        if (!method) {
-            return NextResponse.json({ error: 'Method not found' }, { status: 404 });
-        }
-        await method.destroy();
-        return NextResponse.json(method);
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error deleting method' }, { status: 500 });
-    }
+    return await deleteModel(Method, params);
 }
 

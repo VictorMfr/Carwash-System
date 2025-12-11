@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 
-const steps = ['Enter Email', 'Verify Code', 'New Password'];
+const steps = ['Ingresar', 'Verificar', 'Crear nueva contraseña'];
 
 export default function usePasswordRecoverController() {
     const router = useRouter();
@@ -24,25 +24,25 @@ export default function usePasswordRecoverController() {
         if (activeStep === 0) {
             // Validar email
             if (!email || !email.includes('@')) {
-                setError('Please enter a valid email address');
+                setError('Por favor, ingresa un correo electrónico válido');
                 return;
             }
             handleSendVerificationCode();
         } else if (activeStep === 1) {
             // Validar código de verificación
             if (!verificationCode || verificationCode.length !== 6) {
-                setError('Please enter the 6-digit verification code');
+                setError('Por favor, ingresa el código de verificación de 6 dígitos');
                 return;
             }
             handleVerifyCode();
         } else if (activeStep === 2) {
             // Validar nueva contraseña
             if (!newPassword || newPassword.length < 6) {
-                setError('Password must be at least 6 characters long');
+                setError('La contraseña debe tener al menos 6 caracteres');
                 return;
             }
             if (newPassword !== confirmPassword) {
-                setError('Passwords do not match');
+                setError('Las contraseñas no coinciden');
                 return;
             }
             handleResetPassword();
@@ -69,10 +69,10 @@ export default function usePasswordRecoverController() {
                 setSuccess(data.message);
                 setActiveStep(1);
             } else {
-                setError(data.error || 'Failed to send verification code');
+                setError(data.error || 'Error al enviar el código de verificación');
             }
         } catch (error) {
-            setError('Failed to send verification code. Please try again.');
+            setError('Error al enviar el código de verificación. Por favor, intenta nuevamente.');
         } finally {
             setLoading(false);
         }
@@ -88,10 +88,10 @@ export default function usePasswordRecoverController() {
                 setSuccess(data.message);
                 setActiveStep(2);
             } else {
-                setError(data.error || 'Invalid verification code');
+                setError(data.error || 'Código de verificación inválido');
             }
         } catch (error) {
-            setError('Failed to verify code. Please try again.');
+            setError('Error al verificar el código. Por favor, intenta nuevamente.');
         } finally {
             setLoading(false);
         }
@@ -107,10 +107,10 @@ export default function usePasswordRecoverController() {
                 setSuccess(data.message);
                 setActiveStep(3);
             } else {
-                setError(data.error || 'Failed to reset password');
+                setError(data.error || 'Error al restablecer la contraseña');
             }
         } catch (error) {
-            setError('Failed to reset password. Please try again.');
+            setError('Error al restablecer la contraseña. Por favor, intenta nuevamente.');
         } finally {
             setLoading(false);
         }
