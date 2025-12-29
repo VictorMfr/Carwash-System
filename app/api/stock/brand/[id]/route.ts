@@ -24,4 +24,3 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     return await deleteModel(Brand, params);
 }
-

@@ -98,6 +98,18 @@ const StockModule: ModuleFormGridData = {
                     number: {},
                     id: 'minimum_quantity'
                 }
+            },
+            {
+                field: 'total',
+                headerName: 'Cantidad Total',
+                width: 140,
+                
+                inputConfig: {
+                    size: 12,
+                    id: 'total',
+                    hideIfUpdate: true,
+                    createHidden: true,
+                }
             }
         ]
     },

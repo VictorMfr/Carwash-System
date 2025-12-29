@@ -136,6 +136,10 @@ const ModuleAutocomplete = ({
 
         const isExisting = options.some(option => option.name === state.inputValue);
         if (state.inputValue !== '' && !isExisting) {
+            if (!autoCompleteSettings.newItemLabel) {
+                return filtered;
+            }
+
             filtered.push({
                 id: 'null',
                 inputValue: state.inputValue,
@@ -160,11 +164,11 @@ const ModuleAutocomplete = ({
         if (option.inputValue) {
             return option.name;
         }
-        
+
         if (autoCompleteSettings.getOptionLabel) {
             return autoCompleteSettings.getOptionLabel(option);
         }
-        
+
         if (Array.isArray(option) && option.length == 0) {
             return '';
         }
@@ -201,7 +205,8 @@ const ModuleAutocomplete = ({
                                 />
                             )}
                             isOptionEqualToValue={(opt, val) => (opt?.id ?? opt) === (val?.id ?? val)}
-                            freeSolo
+                            freeSolo={!!autoCompleteSettings.newItemLabel}
+                            noOptionsText={'No hay opciones'}
                             selectOnFocus
                             handleHomeEndKeys
                             clearOnBlur
@@ -241,7 +246,6 @@ const ModuleAutocomplete = ({
             ) : (
                 <FormControl fullWidth>
                     <Autocomplete
-
                         fullWidth
                         value={value}
                         onChange={changeHandler}
@@ -256,6 +260,7 @@ const ModuleAutocomplete = ({
                         filterOptions={filterOptionsHandler}
                         getOptionLabel={getOptionLabelHandler}
                         isOptionEqualToValue={(opt, val) => (opt?.id ?? opt) === (val?.id ?? val)}
+                        
                         renderOption={autoCompleteSettings.renderOption ? (props, option) => (
                             <li
                                 {...props}
@@ -264,7 +269,8 @@ const ModuleAutocomplete = ({
                                 {autoCompleteSettings.renderOption?.(option)}
                             </li>
                         ) : undefined}
-                        freeSolo
+                        freeSolo={!!autoCompleteSettings.newItemLabel}
+                        noOptionsText={'No hay opciones'}
                         selectOnFocus
                         handleHomeEndKeys
                         clearOnBlur

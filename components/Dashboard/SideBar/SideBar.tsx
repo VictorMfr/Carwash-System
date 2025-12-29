@@ -1,41 +1,39 @@
 'use client';
 
-import { Drawer, SxProps, useMediaQuery } from "@mui/material";
-import { useDashboardContext } from "../ContextProvider";
+import { Drawer, SxProps, Theme } from "@mui/material";
 import NavBar from "./NavBar/NavBar";
-
-const slotConfig: typeof Drawer['prototype']['slotProps'] = {
-    root: {
-        keepMounted: true
-    }
-}
+import useSideBarController from "./controller";
 
 export default function SideBar() {
 
-    const dashboardContext = useDashboardContext();
-    const variant = useMediaQuery('(max-width: 600px)') ? 'temporary' : 'permanent';
+    const controller = useSideBarController();
 
-    const styleConfig: SxProps = {
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            maxHeight: variant === 'temporary' ? '100vh' : '90vh',
-            width: 240,
-            // Custom scrollbar styles
-            overflowY: 'auto',
-            scrollbarColor: '#888 transparent',
-            scrollbarWidth: 'thin',
-        },
+    const styleConfig: SxProps<Theme> = {
+        ...styles.drawer,
+        maxHeight: controller.variant === 'temporary' ? '100vh' : '90vh',
     }
 
     return (
         <Drawer
-            variant={variant}
-            open={dashboardContext.mobileOpen}
+            variant={controller.variant}
+            open={controller.dashboardContext.mobileOpen}
             sx={styleConfig}
-            slotProps={slotConfig}
-            onClose={() => dashboardContext.setMobileOpen(false)}
+            slotProps={{ root: { keepMounted: true } }}
+            onClose={controller.closeMobileHandler}
         >
             <NavBar />
         </Drawer>
     )
+}
+
+const styles: Record<string, SxProps<Theme>> = {
+    drawer: {
+        '& .MuiDrawer-paper': {
+            position: 'relative',
+            width: 240,
+            overflowY: 'auto',
+            scrollbarColor: '#888 transparent',
+            scrollbarWidth: 'thin',
+        },
+    },
 }

@@ -27,7 +27,7 @@ export interface AutocompleteModule extends Module {
 	/**
 	 * El label del botón para agregar un nuevo item.
 	 */
-	newItemLabel: string;
+	newItemLabel?: string;
 
 	/**
 	 * El tipo de carga del autocomplete.

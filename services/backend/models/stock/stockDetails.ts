@@ -17,7 +17,15 @@ import {
     BelongsToManyCreateAssociationMixin,
     BelongsToManySetAssociationsMixin,
     BelongsToManyRemoveAssociationMixin,
-    BelongsToManyRemoveAssociationsMixin
+    BelongsToManyRemoveAssociationsMixin,
+    HasManyGetAssociationsMixin,
+    HasManyAddAssociationMixin,
+    HasManyHasAssociationMixin,
+    HasManyCountAssociationsMixin,
+    HasManyCreateAssociationMixin,
+    HasManySetAssociationsMixin,
+    HasManyRemoveAssociationMixin,
+    HasManyRemoveAssociationsMixin
 } from 'sequelize';
 import db from '../../db';
 import Brand from './brand';
@@ -25,6 +33,7 @@ import State from './state';
 import Stock from './stock';
 import Service from '../service/service';
 import Transaction from '../finance/transaction';
+import Failure from './failure';
 
 class StockDetails extends Model<InferAttributes<StockDetails>, InferCreationAttributes<StockDetails>> {
     declare id: CreationOptional<number>;
@@ -68,6 +77,18 @@ class StockDetails extends Model<InferAttributes<StockDetails>, InferCreationAtt
     declare removeService: BelongsToManyRemoveAssociationMixin<Service, number>;
     declare removeServices: BelongsToManyRemoveAssociationsMixin<Service, number>;
     declare createService: BelongsToManyCreateAssociationMixin<Service>;
+
+    // Has many Failures
+    declare Failures: NonAttribute<Failure[]>;
+    declare getFailures: HasManyGetAssociationsMixin<Failure>;
+    declare countFailures: HasManyCountAssociationsMixin;
+    declare hasFailure: HasManyHasAssociationMixin<Failure, number>;
+    declare setFailures: HasManySetAssociationsMixin<Failure, number>;
+    declare addFailure: HasManyAddAssociationMixin<Failure, number>;
+    declare addFailures: HasManyAddAssociationMixin<Failure, number>;
+    declare removeFailure: HasManyRemoveAssociationMixin<Failure, number>;
+    declare removeFailures: HasManyRemoveAssociationsMixin<Failure, number>;
+    declare createFailure: HasManyCreateAssociationMixin<Failure>;
 }
 
 export type StockDetailsCreationAttributes = InferCreationAttributes<StockDetails>;

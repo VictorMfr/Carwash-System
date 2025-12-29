@@ -11,8 +11,7 @@ export const DB_CONNECTION_MESSAGES = {
 
 async function dbConfig() {
     await createAccess();
-    await seedComprehensiveTestData();
-    
+    //await seedComprehensiveTestData(); 
 }
 
 export async function initDatabase() {

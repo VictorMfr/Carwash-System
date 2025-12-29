@@ -15,6 +15,7 @@ const getModels = async <M extends Model>(
         }
         return NextResponse.json(models);
     } catch (error) {
+        console.log(error);
         return handleServerError(error);
     }
 }

@@ -10,7 +10,7 @@ import Service from './service/service';
 import Operator from './service/operator';
 import Vehicle from './service/vehicle/vehicle';
 import VehicleBrand from './service/vehicle/brand';
-import Client from './service/client';
+import Client from './service/client/client';
 import Account from './finance/account';
 import Transaction from './finance/transaction';
 import Method from './finance/method';
@@ -19,6 +19,10 @@ import RecipeStockDetails from './service/recipeStockDetails';
 import ServiceStockDetails from './service/serviceStockDetails';
 import ServiceOperator from './service/serviceOperator';
 import StockDetails from './stock/stockDetails';
+import Failure from './stock/failure';
+import Feedback from './service/client/feedback/feedback';
+import Category from './service/client/feedback/category';
+import OpinionType from './service/client/feedback/opinionType';
 
 // services/backend/models/associations.ts
 User.belongsToMany(Role, {
@@ -48,6 +52,10 @@ StockDetails.belongsTo(State);
 
 Stock.hasMany(StockDetails);
 StockDetails.belongsTo(Stock);
+
+
+StockDetails.hasOne(Failure);
+Failure.belongsTo(StockDetails);
 
 // Service module
 Recipe.hasMany(Service, {
@@ -120,6 +128,15 @@ Vehicle.belongsTo(VehicleBrand, { as: 'VehicleBrand', foreignKey: 'vehicleBrandI
 Client.hasMany(Vehicle, { as: 'Vehicles', foreignKey: 'clientId' });
 Vehicle.belongsTo(Client, { as: 'Client', foreignKey: 'clientId' });
 
+Client.hasMany(Feedback, { as: 'Feedbacks', foreignKey: 'clientId' });
+Feedback.belongsTo(Client, { as: 'Client', foreignKey: 'clientId' });
+
+Category.hasMany(Feedback, { as: 'Feedbacks', foreignKey: 'categoryId' });
+Feedback.belongsTo(Category, { as: 'Category', foreignKey: 'categoryId' });
+
+OpinionType.hasMany(Feedback, { as: 'Feedbacks', foreignKey: 'opinionTypeId' });
+Feedback.belongsTo(OpinionType, { as: 'OpinionType', foreignKey: 'opinionTypeId' });
+
 // Finance module
 User.hasMany(Transaction, { as: 'Transactions', foreignKey: 'userId' });
 Transaction.belongsTo(User, { as: 'User', foreignKey: 'userId' });
@@ -152,5 +169,8 @@ export {
     Account,
     Method,
     Client,
-    Transaction
+    Transaction,
+    Feedback,
+    Category,
+    OpinionType
 };

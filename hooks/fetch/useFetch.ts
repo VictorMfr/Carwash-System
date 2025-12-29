@@ -20,6 +20,7 @@ export default function useFetch<FetchData>(
                 contextLoading(false);
             } else {
                 setData(data);
+                console.log(data);
             }
         } catch (error) {
             console.error('Error fetching data:', error);

@@ -211,6 +211,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 // Update a stock detail
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        
         const { id } = await params;
         const url = new URL(request.url);
         const detailId = url.pathname.split('/').pop();

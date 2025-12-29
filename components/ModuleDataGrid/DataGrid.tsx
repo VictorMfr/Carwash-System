@@ -1,4 +1,4 @@
-import { DataGrid as MuiDataGrid, GridColDef, GridRenderCellParams, GridRowSelectionModel, GridSlotsComponent } from "@mui/x-data-grid";
+import { DataGrid as MuiDataGrid, GridColDef, GridLocaleText, GridRenderCellParams, GridRowSelectionModel, GridSlotsComponent } from "@mui/x-data-grid";
 import { Stack, Typography } from "@mui/material";
 import ModuleToolbar from "./Toolbar";
 import ModuleActions from "./Actions";
@@ -44,6 +44,7 @@ const getColumns = (moduleSettings: ModuleFormGridData, actionColumn: ColumnData
 const DataGrid = () => {
     const datagridCtx = useModuleDataGridContext();
     const [rowSelected, setRowSelected] = useState<GridRowSelectionModel>();
+    
 
     const actionHeaderName = datagridCtx.moduleSettings.actions?.config.headerName ?? '';
     const actionWidth = datagridCtx.moduleSettings.actions?.config.width ?? 150;
@@ -59,7 +60,7 @@ const DataGrid = () => {
         toolbar: () => <ModuleToolbar rowSelected={rowSelected} />,
     };
 
-    const localeText = {
+    const localeText:Partial<GridLocaleText> = {
         noRowsLabel: 'No hay datos',
         paginationRowsPerPage: 'Filas por página',
     };

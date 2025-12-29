@@ -1,7 +1,7 @@
 import { Module } from "../module";
 import { ComponentType } from "react";
-import { ZodObject, ZodSchema } from "zod";
-import {  FormData, FormDataField, FormDataInputConfig, Stepper, StepperStep } from "../form/form";
+import { ZodSchema } from "zod";
+import { FormData, FormDataField, FormDataInputConfig, Stepper, StepperStep } from "../form/form";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { SvgIconTypeMap } from "@mui/material";
@@ -14,6 +14,7 @@ export type ColumnData = FormDataField & {
 	inputConfig: {
 		size: number | GridProps['size'];
 		dataGridHidden?: boolean;
+		createHidden?: boolean;
 		hideIfUpdate?: boolean;
 	} & FormDataInputConfig,
 	flex?: number;

@@ -1,18 +1,17 @@
 "use client";
-import { Box, Typography, Stack, Button, Grid, Card, CardContent, Avatar, Chip, Paper, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import MainSection from "./MainSection";
 import FeatureSection from "./FeatureSection";
-import ShowCase from "./ShowCase";
 import FAQs from "./FAQs";
 import Footer from "./Footer";
+import { Fragment } from "react";
 
 export default function HomePage() {
     return (
-        <Box>    
+        <Fragment>    
             <MainSection />
             <FeatureSection />
             <FAQs />
             <Footer />
-        </Box>
+        </Fragment>
     )
 }

@@ -65,10 +65,12 @@ export default function ModuleFormContext({
 
 
     const ctxData = {
-        moduleSettings: settingsState,
         formValue,
-        setModuleSettings: setSettingsState,
         setFormValue: onChangeFormData,
+
+        moduleSettings: settingsState,
+        setModuleSettings: setSettingsState,
+        
         onSubmit: onSubmit,
         onCancel: onCancel,
         loading,

@@ -1,5 +1,4 @@
-import { SxProps, Box, Typography, Stack, Button, Grid, Card, CardContent, Avatar, Chip, Paper, Accordion, AccordionSummary, AccordionDetails, Theme } from "@mui/material";
-import backgroundImage from "@/public/imgs/logo.jpg";
+import { SxProps, Box, Typography, Stack, Button, Grid, Avatar, Chip, Theme } from "@mui/material";
 import Link from "next/link";
 
 export default function MainSection() {

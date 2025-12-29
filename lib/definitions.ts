@@ -200,6 +200,29 @@ export const StateObjectSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
 });
 
+// MARKETING SCHEMA
+
+export const FeedbackObjectSchema = z.object({
+  client: z.object({
+    id: z.number(),
+  }, 'El cliente es requerido'),
+  category: z.object({
+    id: z.number(),
+  }, 'La categoría es requerida'),
+  opinionType: z.object({
+    id: z.number(),
+  }, 'El tipo de opinión es requerido'),
+  description: z.string().min(1, 'La descripción es requerida'),
+});
+
+export const CategoryObjectSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+});
+
+export const OpinionTypeObjectSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+});
+
 
 const AutocompleteObjectSchema = z.object({
   id: z.union([z.number(), z.string()]).optional(),
@@ -219,6 +242,17 @@ export const StockDetailsObjectSchema = z.object({
   dollar_charge: z.number().optional(),
   charge_account: AutocompleteObjectSchema.optional(),
   method: AutocompleteObjectSchema.optional(),
+});
+
+export const FailureObjectSchema = z.object({
+  // Autocomplete simple: aceptar objeto con id
+  stockDetail: z.object({
+    id: z.number().optional(),
+    name: z.string().optional(),
+  }, 'Debe seleccionar un producto').refine(v => Boolean(v.id), { message: 'Debe seleccionar un producto' }),
+
+  description: z.string().min(1, 'La descripción es requerida'),
+  resolved: z.boolean().optional(),
 });
 
 // EXPORT SCHEMAS
@@ -242,3 +276,7 @@ export const ServiceVehicleSchemaStepTwo = FormInputsArraySchema.pipe(ServiceVeh
 export const ServiceVehicleSchemaStepThree = FormInputsArraySchema.pipe(ServiceVehicleObjectSchemaStepThree);
 export const ServiceVehicleSchemaStepFour = FormInputsArraySchema.pipe(ServiceVehicleObjectSchemaStepFour);
 export const RecipeSchema = FormInputsArraySchema.pipe(RecipeObjectSchema);
+export const FailureSchema = FormInputsArraySchema.pipe(FailureObjectSchema);
+export const FeedbackSchema = FormInputsArraySchema.pipe(FeedbackObjectSchema);
+export const CategorySchema = FormInputsArraySchema.pipe(CategoryObjectSchema);
+export const OpinionTypeSchema = FormInputsArraySchema.pipe(OpinionTypeObjectSchema);

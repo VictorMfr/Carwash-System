@@ -18,10 +18,14 @@ export default function ModuleDataGridModal() {
 
     const data = controller.datagridCtx.moduleSettings.columns
 
-    const filterCondition = (c: FormDataField) => (
-        (controller.modal.type === 'edit' && !c.inputConfig.hideIfUpdate) ||
-        (controller.modal.type === 'add')
-    );
+    const filterCondition = (c: FormDataField) => {
+        const inputConfig = c.inputConfig as any;
+        // Excluir campos marcados como ocultos al crear
+        if (inputConfig?.createHidden) return false;
+        // Excluir en edición si hideIfUpdate está activo
+        if (controller.modal.type === 'edit' && inputConfig?.hideIfUpdate) return false;
+        return true;
+    };
 
     // Construye settings filtrados para respetar hideIfUpdate en modo edición
     const filteredSettings = data.stepper

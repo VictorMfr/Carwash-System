@@ -1,7 +1,32 @@
-import { StockDetails, State, Transaction, Account, Method } from "@/services/backend/models/associations";
+import { StockDetails, State, Transaction, Account, Method, Brand } from "@/services/backend/models/associations";
 import { NextRequest, NextResponse } from "next/server";
 import { deleteUploadFile, storePicture } from "@/lib/pictures";
 import { handleServerError } from "@/lib/error";
+
+// Acepta fechas en formato dd-mm-aaaa o cualquier entrada válida para new Date
+const parseInputDate = (value: any): Date | undefined => {
+    if (!value) return undefined;
+    const raw = `${value}`.trim();
+    const ddMmYyyy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = raw.match(ddMmYyyy);
+    if (match) {
+        const [, dd, mm, yyyy] = match;
+        const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+        return Number.isNaN(date.getTime()) ? undefined : date;
+    }
+    const fallback = new Date(raw);
+    return Number.isNaN(fallback.getTime()) ? undefined : fallback;
+};
+
+const formatDateDDMMYYYY = (value: any): string | undefined => {
+    if (!value) return undefined;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return undefined;
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+};
 
 
 // Actualizar un detalle de stock
@@ -40,10 +65,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             picturePath = await storePicture(picture as File, 'stockDetails');
         }
 
+        const parsedEntryDate = parseInputDate(entry_date);
+
         // actualizar campos básicos del detalle de stock
         const updatedDetail = await detail.update({
             quantity,
-            entry_date: entry_date ? new Date(entry_date as string) : (detail as any).entry_date,
+            entry_date: parsedEntryDate ?? (detail as any).entry_date,
             ...(picturePath ? { picture: picturePath } : {})
         });
 
@@ -72,7 +99,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                     ? Number((dollarNum as number) * (rateNum as number))
                     : (bolNum as number);
                 const amount = -Math.abs(Number(amountBs || 0));
-                const date = entry_date ? new Date(entry_date as string) : (detail as any).entry_date;
+                const date = parsedEntryDate ?? (detail as any).entry_date;
 
                 const tx = await detail.getTransaction();
                 if (tx) {
@@ -103,7 +130,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         // Construir respuesta incluyendo datos de la transacción actual
         try {
             const tx = await detail.getTransaction();
+            const state = await detail.getState();
+            const brand = await detail.getBrand();
             const response: any = updatedDetail.toJSON();
+            response.entry_date = formatDateDDMMYYYY(updatedDetail.entry_date);
+            response.state = state?.name;
+            response.brand = brand?.name;
             if (tx) {
                 response.bol_charge = Math.abs(Number(tx.amount));
                 response.dollar_rate = tx.dollar_rate;

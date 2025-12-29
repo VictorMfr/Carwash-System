@@ -84,10 +84,15 @@ export async function GET() {
     }, async (stocks: Stock[]) => {
         return stocks.map((s: Stock) => {
             const json: any = s.toJSON();
+            const total = (json.StockDetails ?? []).reduce(
+                (acc: number, detail: any) => acc + Number(detail.quantity ?? 0),
+                0
+            );
             return {
                 ...json,
                 product: json.Product.name,
                 unit: json.Product.unit,
+                total,
             }
         });
     });
