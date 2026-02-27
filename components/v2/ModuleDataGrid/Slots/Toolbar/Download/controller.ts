@@ -5,7 +5,7 @@ export default function useDownloadController() {
     const { settings } = useModuleDataGridContext();
 
     const downloadOptions = {
-        fileName: settings.title ?? 'Reporte',
+        fileName: (settings as any).title  ?? 'Reporte',
     }
 
     return {

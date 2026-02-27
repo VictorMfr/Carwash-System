@@ -5,5 +5,5 @@ export const metadataStep: stepperStep = {
     title: 'Metadatos del comentario',
     description: 'Metadatos del comentario',
     config: { spacing: 2 },
-    fields,
+    fields: fields as any,
 };

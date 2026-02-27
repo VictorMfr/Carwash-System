@@ -5,5 +5,5 @@ export const contentStep: stepperStep = {
     title: 'Contenido del comentario',
     description: 'Contenido del comentario',
     config: { spacing: 2 },
-    fields,
+    fields: fields as any,
 };

@@ -6,5 +6,5 @@ export const pictureStep: stepperStep = {
     title: 'Fotos',
     description: 'Fotos',
     config: { spacing: 2 },
-    fields
+    fields: fields as any,
 }

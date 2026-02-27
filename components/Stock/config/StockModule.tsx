@@ -129,7 +129,7 @@ const StockModule: ModuleFormGridData = {
     },
     config: {
         toolbar: {
-            show: ['quickFilter', 'columns', 'export', 'export', 'filter', 'density', 'add', 'delete']
+            show: ['quickFilter', 'export', 'export', 'filter']
         },
         create: {
             name: 'Crear inventario',

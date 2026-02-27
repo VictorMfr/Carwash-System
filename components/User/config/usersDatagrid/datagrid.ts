@@ -5,8 +5,6 @@ import { columns } from "./columns/columns";
 
 export const usersDatagrid: datagrid = {
     url: '/api/user',
-    title: 'Usuarios',
-    description: 'Usuarios',
     columns,
     actions,
     config

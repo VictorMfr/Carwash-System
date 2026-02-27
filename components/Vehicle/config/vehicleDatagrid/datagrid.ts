@@ -5,10 +5,7 @@ import { config } from "./config/config";
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled';
 
 export const VehicleDatagrid: datagrid = {
-    icon: DirectionsCarFilledIcon,
     url: '/api/service/vehicle',
-    title: 'Vehículos',
-    description: 'Aquí puedes ver y gestionar los vehículos.',
     columns,
     actions,
     config,

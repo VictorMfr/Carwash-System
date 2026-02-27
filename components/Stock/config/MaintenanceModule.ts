@@ -73,7 +73,7 @@ const MaintenanceModule: ModuleFormGridData = {
             allowCheckboxSelection: false
         },
         toolbar: {
-            show: ['quickFilter', 'columns']
+            show: ['quickFilter']
         }
     }
 }

@@ -69,7 +69,7 @@ const FailuresModule: ModuleFormGridData = {
             validation: FailureSchema
         },
         toolbar: {
-            show: ['add']
+            show: ['create']
         },
         inputConfig: {
             allowCheckboxSelection: false

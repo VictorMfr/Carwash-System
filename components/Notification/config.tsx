@@ -47,7 +47,7 @@ const NotificationModuleSettings: ModuleFormGridData = {
     config: {
         rowHeight: 64,
         toolbar: {
-            show: ["quickFilter", "columns", "export", "filter", "density"],
+            show: ["quickFilter", "export", "filter"],
         },
         inputConfig: {
             allowCheckboxSelection: false,

@@ -14,6 +14,6 @@ export const financeDataStep: stepperStep = {
     title: 'Datos financieros',
     description: 'Datos financieros',
     config: { spacing: 2 },
-    fields,
+    fields: fields as any,
     validation
 }

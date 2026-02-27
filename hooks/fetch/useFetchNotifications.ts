@@ -1,8 +1,7 @@
-import { NotificationContextType } from "@/components/Notification/ContextProvider";
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
 
-export default function useFetchNotifications(context?: NotificationContextType) {
+export default function useFetchNotifications(context?: any) {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [loadingNotifications, setLoadingNotifications] = useState(true);
 

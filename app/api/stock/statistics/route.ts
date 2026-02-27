@@ -84,7 +84,7 @@ export async function GET() {
         stockDetails.forEach(details => {
             const date = new Date(details.entry_date);
             const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            monthlyCostMap[month] = (monthlyCostMap[month] || 0) + Number(details.price || 0);
+            monthlyCostMap[month] = (monthlyCostMap[month] || 0) + Number(details.Transaction.amount || 0);
         });
 
         const costData = Object.keys(monthlyCostMap)

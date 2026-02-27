@@ -122,7 +122,7 @@ const PaymentModule: ModuleFormGridData = {
             name: 'Pagar',
             icon: Payment,
             dispatchMode: 'link',
-            onClick: handlePaySingle
+            onClick: handlePaySingle as any
         }]
     },
     config: {
@@ -131,7 +131,7 @@ const PaymentModule: ModuleFormGridData = {
                 {
                     name: 'Pagar a todos',
                     icon: Payment,
-                    onClick: handlePayAll
+                    onClick: handlePayAll as any
                 }
             ]
         }

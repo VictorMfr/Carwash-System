@@ -95,13 +95,7 @@ export default function ModuleToolbar({
                     <QuickFilterSearch/>
                 </Tooltip>
             )}
-            {shouldShowToolbarItem('columns', datagridCtx.moduleSettings) && (
-                <Tooltip title="Columnas">
-                    <ColumnsPanelTrigger render={<ToolbarButton />}>
-                        <GridViewColumnIcon fontSize="small" />
-                    </ColumnsPanelTrigger>
-                </Tooltip>
-            )}
+            
             {shouldShowToolbarItem('export', datagridCtx.moduleSettings) && (
                 <Tooltip title="Descargar como CSV">
                     <ExportCsv 
@@ -131,39 +125,8 @@ export default function ModuleToolbar({
                     </ExportPrint>
                 </Tooltip>
             )}
-            {shouldShowToolbarItem('filter', datagridCtx.moduleSettings) && (
-                <Tooltip title="Filtrar">
-                    <FilterPanelTrigger render={<ToolbarButton />}>
-                        <FilterList fontSize="small" />
-                    </FilterPanelTrigger>
-                </Tooltip>
-            )}
-            {shouldShowToolbarItem('density', datagridCtx.moduleSettings) && (
-                <Tooltip title="Densidad">
-                    <ToolbarButton>
-                        <DensityMedium sx={{ fontSize: 20 }} />
-                    </ToolbarButton>
-                </Tooltip>
-            )}
-            {shouldShowToolbarItem('add', datagridCtx.moduleSettings) && (
-                <Tooltip title="Agregar">
-                    <ToolbarButton onClick={showAddModal}>
-                        <Add fontSize="small" />
-                    </ToolbarButton>
-                </Tooltip>
-            )}
-            {shouldShowToolbarItem('delete', datagridCtx.moduleSettings) && (
-                <Tooltip title="Eliminar">
-                    <span>
-                        <ToolbarButton
-                            disabled={shouldDeleteDisabled(rowSelected, datagridCtx.fetchData)}
-                            onClick={handleBulkDelete}
-                        >
-                            <Delete fontSize="small" />
-                        </ToolbarButton>
-                    </span>
-                </Tooltip>
-            )}
+            
+            
             {datagridCtx.moduleSettings.config?.toolbar?.data?.map((item) => (
                 <Tooltip title={item.name} key={item.name}>
                     <ToolbarButton

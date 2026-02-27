@@ -23,7 +23,7 @@ export const chargeAccount: formVanilla = {
                     spacing: 2,
                 },
                 contentType: 'application/json',
-                fields: accountColumns,
+                fields: accountColumns as any,
             },
         },
     },

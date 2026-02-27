@@ -13,6 +13,6 @@ export const stockDataStep: stepperStep = {
     title: 'Datos del stock',
     description: 'Datos del stock',
     config: { spacing: 2 },
-    fields,
+    fields: fields as any,
     validation
 }

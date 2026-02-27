@@ -43,7 +43,7 @@ export const ClientModule: ModuleFormGridData = {
     },
     config: {
         toolbar: {
-            show: ['quickFilter', 'columns', 'export', 'export', 'filter', 'density', 'add', 'delete']
+            show: ['quickFilter', 'export', 'export', 'filter']
         },
         create: {
             name: 'Crear cliente',

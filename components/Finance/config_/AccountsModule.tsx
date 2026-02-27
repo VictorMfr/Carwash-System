@@ -38,7 +38,7 @@ const AccountsModule: ModuleFormGridData = {
             allowCheckboxSelection: false
         },
         toolbar: {
-            show: ['quickFilter', 'columns']
+            show: ['quickFilter']
         }
     }
 }

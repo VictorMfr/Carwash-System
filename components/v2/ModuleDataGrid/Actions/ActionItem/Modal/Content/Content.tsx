@@ -9,7 +9,7 @@ export default function Content({
     handleClose: () => void
 }) {
 
-    const controller = useModalContentController();
+    const controller: any = useModalContentController();
 
 
     return (
