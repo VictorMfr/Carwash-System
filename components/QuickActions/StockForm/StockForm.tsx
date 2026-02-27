@@ -1,74 +1,81 @@
 'use client';
 
-import ModuleForm from "@/components/ModuleForm";
-import stockQuickFormSettings from "./config";
-import useFormDataController, { FormInput } from "@/components/ModuleForm/FormDataController";
-import { useState } from "react";
+import ModuleForm from "@/components/v2/ModuleForm";
+import { stockQuickFormSettings } from "./config/form";
+import useGetFormStateControls from "@/components/v2/ModuleForm/utils/useGetFormStateControls";
+import formStateField from "@/types/v2/form/controller/formStateField/formStateField";
+import getFormData from "@/components/v2/ModuleForm/utils/getFormData";
+import withUIDisplayControls from "@/HOC/withUIDisplayControls";
+import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import api from "@/lib/axios";
 import { handleApiError } from "@/lib/error";
-import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
-import { Button, Stack } from "@mui/material";
+import { useRouter } from "next/navigation";
+
+const buildPayload = (formData: Record<string, any>) => {
+    const payload = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+
+        const normalizedKey = key === 'inventory' ? 'stock' : key;
+
+        if (value instanceof File || value instanceof Blob) {
+            payload.append(normalizedKey, value);
+            return;
+        }
+
+        if (typeof value === 'object') {
+            payload.append(normalizedKey, JSON.stringify(value));
+            return;
+        }
+
+        payload.append(normalizedKey, value as any);
+    });
+
+    return payload;
+};
 
 const StockForm = () => {
     const uiContext = useUIDisplayControls();
-    const { initialFormInputs } = useFormDataController(stockQuickFormSettings.columns);
-    const [formValue, setFormValue] = useState<FormInput[]>(initialFormInputs);
+    const router = useRouter();
 
-    const buildPayload = () => {
-        if (stockQuickFormSettings.columns.contentType === 'multipart/form-data') {
-            const fd = new FormData();
-            formValue.forEach(({ field, value }) => {
-                if (value === null || value === undefined) return;
-                if (value instanceof Blob) {
-                    fd.append(field, value);
-                } else if (typeof value === 'object') {
-                    if ('id' in (value as any)) {
-                        fd.append(field, (value as any).id);
-                    } else {
-                        fd.append(field, JSON.stringify(value));
-                    }
-                } else {
-                    fd.append(field, value as any);
+    const controls = useGetFormStateControls(stockQuickFormSettings.fields, {
+        onSubmit: async (formState: formStateField[]) => {
+            try {
+                uiContext.setLoading(true);
+                const payload = buildPayload(getFormData(formState));
+                await api.post('/api/stock/details', payload, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                uiContext.setSnackbar({
+                    open: true,
+                    message: 'Producto agregado correctamente',
+                    severity: 'success',
+                });
+
+                const repeat = window.confirm('Desea registrar otro producto?');
+                if (repeat) {
+                    window.location.reload();
                 }
-            });
-            return fd;
-        }
 
-        const data: Record<string, any> = {};
-        formValue.forEach(({ field, value }) => {
-            data[field] = value;
-        });
-        return data;
-    };
-
-    const submit = async () => {
-        try {
-            const payload = buildPayload();
-            await api.post('/api/stock/details', payload, {
-                headers: stockQuickFormSettings.columns.contentType === 'multipart/form-data'
-                    ? { 'Content-Type': 'multipart/form-data' }
-                    : undefined,
-            });
-            uiContext.setSnackbar({ open: true, message: 'Producto agregado correctamente', severity: 'success' });
-            setFormValue(initialFormInputs);
-        } catch (error) {
-            handleApiError(error, uiContext);
-        }
-    };
+                router.push('/dashboard');
+            } catch (error) {
+                handleApiError(error, uiContext);
+            } finally {
+                uiContext.setLoading(false);
+            }
+        },
+        onCancel: () => {
+            router.push('/dashboard');
+        },
+    });
 
     return (
-        <Stack spacing={2}>
-            <ModuleForm
-                settings={stockQuickFormSettings.columns}
-                formValue={formValue}
-                onChangeFormData={setFormValue}
-            />
-            <Button variant="contained" onClick={submit}>
-                Enviar
-            </Button>
-        </Stack>
+        <ModuleForm
+            settings={stockQuickFormSettings}
+            controls={controls}
+        />
     );
-};
+}
 
-export default StockForm;
-
+export default withUIDisplayControls(StockForm);

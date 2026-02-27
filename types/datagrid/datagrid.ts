@@ -7,7 +7,7 @@ import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { SvgIconTypeMap } from "@mui/material";
 import { GridProps } from "@mui/material";
 
-export type ToolbarItem = 'export' | 'filter' | 'columns' | 'density' | 'quickFilter' | 'add' | 'delete';
+export type ToolbarItem = 'create' | 'edit' | 'bulkDelete' | 'quickFilter' | 'filter' | 'export' | 'download';
 export type ColumnData = FormDataField & {
 	field: string;
 	headerName: string;

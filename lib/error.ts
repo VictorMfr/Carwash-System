@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 import { NextResponse } from "next/server";
-import { SequelizeScopeError } from "sequelize";
+import { ZodError } from "zod";
 
 // Manejar error de API
 export const handleApiError = (error: unknown, uiContext: any) => {
@@ -34,12 +34,20 @@ export const handleServerError = (error: unknown) => {
         return NextResponse.json({ error: axiosError }, { status: 500 });
     }
 
+    if (error instanceof ZodError) {
+        const zodError = "Zod Error: " + error.issues.map(issue => issue.message).join('; ');
+        console.log(zodError);
+        return NextResponse.json({ error: zodError }, { status: 500 });
+    }
+
     // Verificar si es un error
     if (error instanceof Error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.log(error);
+        return NextResponse.json({ error: error.message || 'Ocurrio un error al procesar la solicitud' }, { status: 500 });
     }
     
 
+    console.log(error);
     // Verificar si es un error desconocido
     return NextResponse.json({ error: 'Ocurrió un error desconocido' }, { status: 500 });
 }

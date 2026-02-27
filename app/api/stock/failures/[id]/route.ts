@@ -29,6 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 id: model.id,
                 description: model.description,
                 resolved: model.resolved,
+                picture: stockDetail?.picture,
                 stockDetail: stockDetailId ? { id: stockDetailId, name: product?.name } : undefined
             };
         }

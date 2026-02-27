@@ -1,6 +1,6 @@
 import formVanilla from "@/types/v2/form/formVariants/formVanilla/formVanilla";
 import useGetFieldController from "../utils/useGetFieldController";
-import { FormControl, InputLabel, OutlinedInput } from "@mui/material";
+import { FormControl, FormHelperText, InputLabel, OutlinedInput } from "@mui/material";
 
 export default function NumberInput({ field }: { field: formVanilla }) {
     if (!field.number) return null;
@@ -11,13 +11,13 @@ export default function NumberInput({ field }: { field: formVanilla }) {
     const endAdornment = field.number.adornment && field.number.adornmentPosition === 'end' && <field.number.adornment/>;
 
     return (
-        <FormControl fullWidth>
+        <FormControl fullWidth error={!!controller.state.error}>
             <InputLabel id={field.id} htmlFor={field.id}>{field.headerName}</InputLabel>
             <OutlinedInput
                 type="number"
                 id={field.id}
                 label={field.headerName}
-                value={controller.state.value}
+                value={controller.state.value ?? ''}
                 onChange={controller.onChange}
                 fullWidth
                 startAdornment={startAdornment}
@@ -25,6 +25,7 @@ export default function NumberInput({ field }: { field: formVanilla }) {
                 disabled={field.effects?.disable}
                 {...controller.effects}
             />
+            <FormHelperText error={!!controller.state.error}>{controller.state.error}</FormHelperText>
         </FormControl>
     )
 }

@@ -182,6 +182,141 @@ interface FinanceStatistics {
     dollarData: Array<{ month: string; dollar: number }>;
 }
 
+const EMPTY_FINANCE_STATISTICS: FinanceStatistics = {
+    incomeData: [],
+    costData: [],
+    dollarData: []
+};
+
+const asNumber = (value: unknown, fallback = 0): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return fallback;
+};
+
+const asString = (value: unknown, fallback = ''): string => {
+    return typeof value === 'string' ? value : fallback;
+};
+
+const extractArray = (value: unknown, possibleKeys: string[]): unknown[] => {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+        for (const key of possibleKeys) {
+            if (Array.isArray(record[key])) {
+                return record[key] as unknown[];
+            }
+        }
+    }
+    return [];
+};
+
+const normalizeTransactionRow = (row: unknown, index: number): TransactionData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    return {
+        id: asNumber(item.id, index + 1),
+        date: asString(item.date, dayjs().toISOString()),
+        amount: asNumber(item.amount, 0),
+        description: asString(item.description, 'N/A'),
+        dollar_rate: asNumber(item.dollar_rate, 0),
+        account: asString(item.account, 'N/A'),
+        method: asString(item.method, 'N/A'),
+        user: asString(item.user, '')
+    };
+};
+
+const normalizeAccountRow = (row: unknown, index: number): AccountData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    return {
+        id: asNumber(item.id, index + 1),
+        name: asString(item.name, 'N/A'),
+        description: asString(item.description, ''),
+        balance: asNumber(item.balance, 0)
+    };
+};
+
+const normalizeIncomeSeries = (value: unknown): Array<{ month: string; income: number }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            month: asString(item.month, 'N/A'),
+            income: asNumber(item.income, 0)
+        };
+    });
+};
+
+const normalizeCostSeries = (value: unknown): Array<{ month: string; cost: number }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            month: asString(item.month, 'N/A'),
+            cost: asNumber(item.cost, 0)
+        };
+    });
+};
+
+const normalizeDollarSeries = (value: unknown): Array<{ month: string; dollar: number }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            month: asString(item.month, 'N/A'),
+            dollar: asNumber(item.dollar, 0)
+        };
+    });
+};
+
+const normalizeTransactions = (value: unknown): TransactionData[] => {
+    return extractArray(value, ['transactions', 'data', 'rows', 'results']).map(normalizeTransactionRow);
+};
+
+const normalizeAccounts = (value: unknown): AccountData[] => {
+    return extractArray(value, ['accounts', 'data', 'rows', 'results']).map(normalizeAccountRow);
+};
+
+const normalizeFinanceStatistics = (value: unknown): FinanceStatistics => {
+    const statsSource = (value && typeof value === 'object') ? (value as Record<string, unknown>) : {};
+    return {
+        incomeData: normalizeIncomeSeries(statsSource.incomeData),
+        costData: normalizeCostSeries(statsSource.costData),
+        dollarData: normalizeDollarSeries(statsSource.dollarData)
+    };
+};
+
+class ReportPdfErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error) {
+        console.error('Error rendering Finance report PDF:', error);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+                    <Alert severity="error">
+                        Error al generar el reporte PDF. Verifica los datos financieros e intenta nuevamente.
+                    </Alert>
+                </Box>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
 // Export pages so they can be composed in a single PDF
 export const FinanceReportPages = ({ 
     transactions, 
@@ -211,8 +346,9 @@ export const FinanceReportPages = ({
         ? totalCosts / costTransactions.length 
         : 0;
     
-    const avgDollarRate = transactions.length > 0
-        ? transactions.reduce((sum, t) => sum + (t.dollar_rate || 0), 0) / transactions.filter(t => t.dollar_rate).length
+    const transactionsWithDollarRate = transactions.filter(t => t.dollar_rate > 0);
+    const avgDollarRate = transactionsWithDollarRate.length > 0
+        ? transactionsWithDollarRate.reduce((sum, t) => sum + t.dollar_rate, 0) / transactionsWithDollarRate.length
         : 0;
     
     const maxIncome = incomeTransactions.length > 0
@@ -481,11 +617,7 @@ const FinanceReportDocument = ({
 export default function FinanceReportsPage() {
     const [transactions, setTransactions] = useState<TransactionData[]>([]);
     const [accounts, setAccounts] = useState<AccountData[]>([]);
-    const [statistics, setStatistics] = useState<FinanceStatistics>({
-        incomeData: [],
-        costData: [],
-        dollarData: []
-    });
+    const [statistics, setStatistics] = useState<FinanceStatistics>(EMPTY_FINANCE_STATISTICS);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -515,9 +647,9 @@ export default function FinanceReportsPage() {
                 const accountsData = await accountsRes.json();
                 const statsData = await statsRes.json();
 
-                setTransactions(transactionsData);
-                setAccounts(accountsData);
-                setStatistics(statsData);
+                setTransactions(normalizeTransactions(transactionsData));
+                setAccounts(normalizeAccounts(accountsData));
+                setStatistics(normalizeFinanceStatistics(statsData));
             } catch (err: any) {
                 setError(err.message || 'Error al cargar los datos');
             } finally {
@@ -546,13 +678,15 @@ export default function FinanceReportsPage() {
 
     return (
         <Box sx={{ width: '100vw', height: '100vh' }}>
-            <PDFViewer height={'100%'} width={'100%'}>
-                <FinanceReportDocument 
-                    transactions={transactions} 
-                    accounts={accounts} 
-                    statistics={statistics} 
-                />
-            </PDFViewer>
+            <ReportPdfErrorBoundary>
+                <PDFViewer height={'100%'} width={'100%'}>
+                    <FinanceReportDocument 
+                        transactions={transactions} 
+                        accounts={accounts} 
+                        statistics={statistics} 
+                    />
+                </PDFViewer>
+            </ReportPdfErrorBoundary>
         </Box>
     );
 }

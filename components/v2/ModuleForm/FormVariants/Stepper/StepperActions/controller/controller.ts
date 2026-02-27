@@ -20,12 +20,18 @@ export default function useStepperActionsController() {
         controlsStepper.stepper.setActiveStep(controlsStepper.stepper.activeStep + 1);
     }
 
-    const handleSubmit = () => {
-        controlsStepper.stepper.onSubmit();
+    const handleSubmit = async () => {
+        controlsStepper.stepper.setLoading(true);
+        try {
+            await Promise.resolve(controlsStepper.stepper.onSubmit(controlsStepper.formState));
+        } finally {
+            controlsStepper.stepper.setLoading(false);
+        }
     }
 
     const isFirstStep = controlsStepper.stepper.activeStep === 0;
     const isLastStep = controlsStepper.stepper.activeStep === settingsStepper.steps.length - 1;
+    const submitLoading = controlsStepper.stepper.loading;
 
     return {
         handleBack,
@@ -33,5 +39,6 @@ export default function useStepperActionsController() {
         handleSubmit,
         isFirstStep,
         isLastStep,
+        submitLoading,
     }
 }

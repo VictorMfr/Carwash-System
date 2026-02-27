@@ -1,13 +1,25 @@
-import actions from "@/types/v2/datagrid/actions/actions";
 import { IconButton, Tooltip } from "@mui/material";
-import { GridRenderCellParams } from "@mui/x-data-grid";
+import useActionItemController from "./controller";
+import { Fragment } from "react";
+import Modal from "./Modal/Modal";
 
-export default function ActionItem({ action, params }: { action: actions['options'][number], params: GridRenderCellParams }) {
+
+export default function ActionItem() {
+
+    const controller = useActionItemController();
+
     return (
-        <Tooltip title={action.name}>
-            <IconButton onClick={action.onClick}>
-                <action.icon />
-            </IconButton>
-        </Tooltip>
+        <Fragment>
+            <Tooltip title={controller.action.name}>
+                <IconButton onClick={controller.handleClick}>
+                    <controller.action.icon />
+                </IconButton>
+            </Tooltip>
+            <Modal
+                action={controller.action}
+                isOpen={controller.isOpen}
+                handleClose={controller.handleClose}
+            />
+        </Fragment>
     )
 }

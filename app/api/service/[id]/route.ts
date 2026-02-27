@@ -4,6 +4,7 @@ import { handleServerError } from "@/lib/error";
 import updateModel from "@/lib/apiUtils/model/updateModel";
 import { StatusObjectSchema } from "@/lib/definitions";
 
+
 // Obtener servicio
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -21,7 +22,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: 'Service not found' }, { status: 404 });
         }
 
-        return NextResponse.json(service);
+        
+
+        const response = {
+            ...service.toJSON(),
+            recipeName: { name: service.Recipe?.name, products: service.StockDetails },
+        }
+
+        
+        return NextResponse.json(response);
     } catch (error) {
         return handleServerError(error);
     }
@@ -48,14 +57,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
             return {
                 ...json,
-                recipeName: json.Recipe.name,
+                recipeName: {
+                    name: json.Recipe?.name ?? '',
+                    products: json.StockDetails ?? [],
+                },
                 dollar_rate: json.dollar_rate,
                 bol_charge: json.bol_charge,
                 // Derive dollar_charge for the client (read-only)
                 dollar_charge: json.dollar_rate ? Number(json.bol_charge) / Number(json.dollar_rate) : null,
                 status: json.status,
                 vehicleLicensePlate: json.Vehicle?.license_plate,
-                client: `${json.Vehicle?.Client?.name} ${json.Vehicle?.Client?.lastname}`,
+                client: `${json.Vehicle?.Client?.name ?? ''} ${json.Vehicle?.Client?.lastname ?? ''}`.trim(),
                 operators: json.Operators?.map((op: any) => ({
                     id: op.id,
                     name: op.name,

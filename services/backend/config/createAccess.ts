@@ -1,55 +1,39 @@
-import { Role, User } from "../models/associations";
 import bcrypt from "bcryptjs";
-import { UserCreationAttributes } from "../models/auth/user";
+import { User } from "../models/associations";
 
 
-type RoleName = typeof defaultRoles[number]['name']
-type UserWithRoles = Omit<UserCreationAttributes, 'id' | 'created_at' | 'updated_at' | 'active'> & {
-    roles: RoleName[]
-}
-
-const defaultRoles = [
+export const defaultRoles = [
     {
-        name: 'Administrator'
+        name: 'Administrador'
     },
     {
-        name: 'Stock Manager'
+        name: 'Auditor Inventario'
     },
     {
-        name: 'Maintenance Manager'
+        name: 'Auditor Finanzas'
     },
     {
-        name: 'Finance Manager'
+        name: 'Soporte cliente'
+    },
+    {
+        name: 'Auditor Marketing'
+    },
+    {
+        name: 'Auditor RRHH'
     }
 ] 
 
-const defaultUsers: UserWithRoles[] = [
-    {
+export default async function createAccess() {
+
+    const hashedPassword = await bcrypt.hash('admin', 10);
+
+    await User.create({
         name: 'Admin',
         lastname: 'Admin',
         email: 'admin@admin.com',
         phone: '1234567890',
         address: '1234567890',
-        password: 'admin',
-        roles: ['Administrator']
-    }
-]
-
-export default async function createAccess() {
-    const roles = await Role.bulkCreate(defaultRoles);
-    const admin = defaultUsers.find(user => user.email.includes('@admin.com'));
-
-    if (!admin) {
-        throw new Error('Admin user not found, must add one to defaultUsers.ts');
-    }
-
-    const adminData = { 
-        ...admin, 
-        password: await bcrypt.hash(admin.password, 10),
-        roles: undefined 
-    };
-
-    const adminUser = await User.create(adminData);
-
-    await roles[0].addUser(adminUser);
+        password: hashedPassword,
+        role: 'Administrador'
+    })
 }

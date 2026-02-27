@@ -20,7 +20,7 @@ export default function Header() {
                     alignItems="center"
                     gap={{ xs: 1, md: 2 }}
                 >
-                    {headerController.dashboardContext.mobileOpen && (
+                    {headerController.dashboardContext.isMobile && (
                         <IconButton onClick={headerController.openMobileHandler}>
                             <Menu sx={{ color: 'white' }} />
                         </IconButton>

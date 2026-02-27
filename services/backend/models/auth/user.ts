@@ -26,7 +26,6 @@ import {
     HasManyRemoveAssociationsMixin
 } from 'sequelize';
 import db from '../../db';
-import Role from './role';
 import Stock from '../stock/stock';
 import Transaction from '../finance/transaction';
 
@@ -38,22 +37,10 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare address: string;
     declare email: string;
     declare password: string;
+    declare role: string;
     declare active: CreationOptional<boolean>;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
-
-    // Many-to-many relationship with Role
-    declare Roles: NonAttribute<Role[]>;
-    declare getRoles: BelongsToManyGetAssociationsMixin<Role>;
-    declare countRoles: BelongsToManyCountAssociationsMixin;
-    declare hasRole: BelongsToManyHasAssociationMixin<Role, number>;
-    declare hasRoles: BelongsToManyHasAssociationMixin<Role, number>;
-    declare setRoles: BelongsToManySetAssociationsMixin<Role, number>;
-    declare addRole: BelongsToManyAddAssociationMixin<Role, number>;
-    declare addRoles: BelongsToManyAddAssociationMixin<Role, number>;
-    declare removeRole: BelongsToManyRemoveAssociationMixin<Role, number>;
-    declare removeRoles: BelongsToManyRemoveAssociationsMixin<Role, number>;
-    declare createRole: BelongsToManyCreateAssociationMixin<Role>;
 
     // One-to-one relationship with Stock
     declare Stock: NonAttribute<Stock>;
@@ -106,6 +93,10 @@ User.init({
         unique: true,
     },
     password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    role: {
         type: DataTypes.STRING,
         allowNull: false,
     },

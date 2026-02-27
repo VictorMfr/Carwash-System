@@ -3,16 +3,18 @@ import { Operator } from "@/services/backend/models/associations";
 import createModel from "@/lib/apiUtils/model/createModel";
 import getModels from "@/lib/apiUtils/model/getModels";
 import deleteModels from "@/lib/apiUtils/model/deleteModels";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { handleServerError } from "@/lib/error";
 
 // Crear operador
 export async function POST(request: NextRequest) {
-    return await createModel({
-        model: Operator,
-        validationSchema: OperatorObjectSchema,
-        request,
-        uniqueField: 'phone',
-    });
+    try {
+        const { name, lastname, phone, address } = await request.json();
+        const operator = await Operator.create({ name, lastname, phone, address });
+        return NextResponse.json(operator);
+    } catch (error) {
+        return handleServerError(error);
+    }
 }
 
 // Obtener operadores

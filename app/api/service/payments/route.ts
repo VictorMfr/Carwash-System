@@ -10,8 +10,9 @@ import { NextResponse } from "next/server";
 import { handleServerError } from "@/lib/error";
 import { getOperatorPaymentPercentage, getFinanceSettings } from "@/services/backend/config/settings";
 import { getSession, decrypt } from "@/lib/session";
+import getDollarRate from "@/lib/dollar";
 
-const DEFAULT_PAYMENT_METHOD = "Pago operadores";
+const DEFAULT_PAYMENT_METHOD = "Personalizado";
 
 type OperatorPaymentItem = {
     serviceId: number;
@@ -141,21 +142,9 @@ export async function GET() {
     }
 }
 
-// Actualizar estado de pago
-export async function PUT(request: Request) {
-    try {
-        const { id, status } = await request.json();
-        
-        return NextResponse.json({ 
-            message: 'Payment status updated successfully',
-            id,
-            status 
-        });
-    } catch (error) {
-        return handleServerError(error);
-    }
-}
-
+/*
+    Esta ruta es para crear transacciones relacionadas a los pagos de los operadores
+*/
 export async function POST(request: Request) {
     try {
         const session = await getSession();
@@ -207,7 +196,7 @@ export async function POST(request: Request) {
                 date: new Date(),
                 amount: row.payment,
                 description: `Pago a operador ${row.operator}`,
-                dollar_rate: 1,
+                dollar_rate: (await getDollarRate())[0].promedio,
             });
             await transaction.setAccount(account.id);
             await transaction.setMethod(method.id);

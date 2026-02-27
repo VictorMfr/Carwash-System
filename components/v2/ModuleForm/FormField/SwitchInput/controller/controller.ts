@@ -1,7 +1,7 @@
 import formVanilla from "@/types/v2/form/formVariants/formVanilla/formVanilla";
 import { useModuleFormContext } from "../../../context";
 import getFieldState from "../../utils/getFieldState";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import handleSideEffects from "./utils/handleSideEffects/handleSideEffects";
 
 export default function useVanillaSwitchController(field: formVanilla) {
@@ -16,6 +16,12 @@ export default function useVanillaSwitchController(field: formVanilla) {
         moduleFormContext.controls.setFormState(moduleFormContext.controls.formState.map(state => state.field === field.id ? { ...state, value: checked } : state));
         handleSideEffects(field, moduleFormContext);
     }
+
+    useEffect(() => {
+        if (state.value) {
+            handleSideEffects(field, moduleFormContext);
+        }
+    }, []);
 
     return {
         state,

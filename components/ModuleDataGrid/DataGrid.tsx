@@ -92,7 +92,7 @@ const DataGrid = () => {
     }
 
     return (
-        <Stack sx={{ height: '100%' }} spacing={2}>
+        <Stack sx={{ height: '100%' }}>
             <Stack direction="row" alignItems="center" spacing={2}>
                 {Icon && <Icon color="action" />}
                 <Stack>

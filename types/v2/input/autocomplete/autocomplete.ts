@@ -1,5 +1,4 @@
 import { ZodSchema } from "zod";
-import loadingType from "./loadingType/loadingType";
 import confirmConfig from "./confirmConfig/confirmConfig";
 import formDataConfig from "./formDataConfig/formDataConfig";
 import config from "./config/config";
@@ -18,6 +17,6 @@ export default interface Autocomplete extends Partial<ComponentProps<typeof Auto
     multiple?: boolean,
     
     config?: config,
-    validation?: ZodSchema<any>;
+    
     disableActions?: boolean;
 }

@@ -38,7 +38,7 @@ export default function FeatureSection() {
         },
         { 
             icon: Inventory2Icon, 
-            title: 'Inventario y stock', 
+            title: 'Inventario', 
             desc: 'Control por lotes, costos y mínimos de reposición.',
             color: theme.palette.success.main
         },

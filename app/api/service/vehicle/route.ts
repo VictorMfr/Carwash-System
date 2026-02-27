@@ -1,79 +1,41 @@
 import { Vehicle, VehicleBrand, VehicleModel, Client } from "@/services/backend/models/associations";
 import { NextResponse } from "next/server";
 import { Op } from "sequelize";
+import { handleServerError } from "@/lib/error";
+import { Attributes } from "sequelize";
+
+export interface POSTVehiclePayload {
+    license_plate: string;
+    brand: Attributes<VehicleBrand>;
+    model: Attributes<VehicleModel>;
+    client: Attributes<Client>;
+}
 
 // Crear vehículo
 export async function POST(request: Request) {
     try {
-        const { license_plate, brand, model, client } = await request.json();
+        const payload: POSTVehiclePayload = await request.json();
 
-        const isVehicleInDB = await Vehicle.findOne({ where: { license_plate }, paranoid: false });
-        if (isVehicleInDB) {
-            if (isVehicleInDB.isSoftDeleted()) {
-                await isVehicleInDB.restore();
-                return NextResponse.json(isVehicleInDB);
-            } else {
-                return NextResponse.json({ error: 'Vehicle already exists' }, { status: 400 });
-            }
+        const vehicle = await Vehicle.create({
+            license_plate: payload.license_plate,
+            brandId: payload.brand.id,
+            modelId: payload.model.id,
+            clientId: payload.client.id,
+        });
+
+        const json = vehicle.toJSON();
+
+        const response = {
+            ...json,
+            brand: payload.brand.name,
+            model: payload.model.name,
+            client: payload.client.name + ' ' + payload.client.lastname,
         }
 
-        // Funciones auxiliares para resolver FK por id o por nombre, creando si es necesario (con restore en soft-deleted)
-        const resolveByNameOrId = async (value: any, Model: any) => {
-            if (!value) return null;
-            // id numérico
-            if (typeof value === 'number') return value;
-            // objeto con id
-            if (typeof value === 'object' && value.id) return value.id;
-            // obtener nombre candidato
-            const candidateName = typeof value === 'string' ? value : (value.name ?? value.label);
-            if (!candidateName) return null;
-            const existing = await Model.findOne({ where: { name: candidateName }, paranoid: false });
-            if (existing) {
-                if (existing.isSoftDeleted && existing.isSoftDeleted()) {
-                    await existing.restore();
-                }
-                return existing.id;
-            }
-            const created = await Model.create({ name: candidateName });
-            return created.id;
-        };
+        return NextResponse.json(response);
 
-        const brandId = await resolveByNameOrId(brand, VehicleBrand);
-        const modelId = await resolveByNameOrId(model, VehicleModel);
-
-        // El cliente puede traer más campos; intentamos respetarlos si vienen
-        let clientId: number | null = null;
-        if (client) {
-            if (typeof client === 'number') {
-                clientId = client;
-            } else if (typeof client === 'object' && client.id) {
-                clientId = client.id;
-            } else {
-                const candidateName = typeof client === 'string' ? client : (client.name ?? client.label);
-                const payload: any = { name: candidateName };
-                if (typeof client === 'object') {
-                    if (client.lastname) payload.lastname = client.lastname;
-                    if (client.phone) payload.phone = client.phone;
-                    if (client.address) payload.address = client.address;
-                }
-                const existingClient = await Client.findOne({ where: { name: payload.name }, paranoid: false });
-                if (existingClient) {
-                    if (existingClient.isSoftDeleted && existingClient.isSoftDeleted()) {
-                        await existingClient.restore();
-                    }
-                    clientId = existingClient.id;
-                } else {
-                    const createdClient = await Client.create(payload);
-                    clientId = createdClient.id;
-                }
-            }
-        }
-
-        const vehicle = await Vehicle.create({ license_plate, brandId: brandId ?? undefined, modelId: modelId ?? undefined, clientId: clientId ?? undefined });
-        return NextResponse.json(vehicle);
     } catch (error) {
-        console.log(error);
-        return NextResponse.json({ error: 'Error creating vehicle' }, { status: 500 });
+        return handleServerError(error);
     }
 }
 
@@ -87,7 +49,20 @@ export async function GET() {
                 { model: Client, as: 'Client' }
             ]
         });
-        return NextResponse.json(vehicles);
+
+
+        const response = vehicles.map((vehicle) => {
+            return {
+                ...vehicle.toJSON(),
+                brand: vehicle.VehicleBrand.name ?? 'N/A',
+                model: vehicle.VehicleModel.name ?? 'N/A',
+                client: vehicle.Client?.name + ' ' + vehicle.Client?.lastname,
+            }
+        });
+
+        console.log(response)
+
+        return NextResponse.json(response);
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Error getting vehicles' }, { status: 500 });

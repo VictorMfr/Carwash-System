@@ -1,4 +1,4 @@
-import { RecipeSchema } from "@/lib/definitions";
+import { RecipeObjectSchema, RecipeSchema } from "@/lib/definitions";
 import { Recipe } from "@/services/backend/models/associations";
 import { NextRequest } from "next/server";
 import getModel from "@/lib/apiUtils/model/getModel";
@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         model: Recipe,
         params,
         request,
-        validationSchema: RecipeSchema,
+        validationSchema: RecipeObjectSchema,
     });
 }
 

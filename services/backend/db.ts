@@ -11,6 +11,7 @@ const db = new Sequelize(
         dialect: 'mysql',
         dialectModule: mysql2,
         port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+        logging: false,
     }
 );
 

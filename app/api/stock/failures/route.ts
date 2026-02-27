@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import deleteModels from "@/lib/apiUtils/model/deleteModels";
 import getModels from "@/lib/apiUtils/model/getModels";
 import { Stock, Product, StockDetails } from "@/services/backend/models/associations";
+import { col } from "sequelize";
 
 // Crear falla
 export async function POST(request: NextRequest) {
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
                     id: model.id,
                     description: model.description,
                     resolved: model.resolved,
+                    picture: stockDetail?.picture,
                     stockDetail: stockDetailId ? { id: stockDetailId, name: product?.name } : undefined
                 };
 
@@ -47,31 +49,36 @@ export async function POST(request: NextRequest) {
 // Obtener fallas
 export async function GET(request: Request) {
     try {
-        return await getModels(Failure, {
+        const failures = await Failure.findAll({
+            attributes: [
+                'id',
+                'description',
+                'resolved',
+                [col('StockDetail.picture'), 'picture']
+            ],
             include: [
-                {
-                    model: StockDetails,
+                { 
+                    model: StockDetails, 
                     as: 'StockDetail',
-                    include: [
-                        {
-                            model: Stock,
-                            as: 'Stock',
-                            include: [{ model: Product, as: 'Product' }]
-                        }
-                    ]
+                    include: [{ 
+                        model: Stock, 
+                        as: 'Stock', 
+                        include: [{ 
+                            model: Product, 
+                            as: 'Product',
+                            where: { isTool: true } 
+                        }] 
+                    }] 
                 }
             ],
-        }, async (failures: Failure[]) => {
-            return failures.map((failure: Failure) => {
-                const stockDetailId = failure.StockDetail?.id;
-                const productName = failure.StockDetail?.Stock?.Product?.name;
-                return {
-                    ...failure.toJSON(),
-                    id: failure.id,
-                    stockDetail: stockDetailId ? { id: stockDetailId, name: productName } : undefined
-                };
-            });
         });
+
+        return NextResponse.json(failures.map((failure: Failure) => {
+            return {
+                ...failure.toJSON(),
+                stockDetail: failure.StockDetail?.Stock?.Product
+            };
+        }));
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Error getting failures' }, { status: 500 });

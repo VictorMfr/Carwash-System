@@ -20,7 +20,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const product = json.product ?? json.Product ?? null;
         const flattened = {
             ...json,
-            name: product?.name ?? null,
+            product: product?.name ?? null,
             unit: product?.unit ?? null,
         };
         return NextResponse.json(flattened);

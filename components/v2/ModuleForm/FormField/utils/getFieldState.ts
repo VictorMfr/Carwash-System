@@ -26,15 +26,15 @@ export default function getFieldState(
     const state = setStateEffects(stateWithoutEffects, formEffects);
 
     const onChangeText = (event: ChangeEvent<HTMLInputElement>) => {
-        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: event.target.value } : state));
+        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: event.target.value, error: '' } : state));
     }
 
     const onChangeNumber = (event: ChangeEvent<HTMLInputElement>) => {
-        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: Number(event.target.value) } : state));
+        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: Number(event.target.value), error: '' } : state));
     }
 
     const onChangeSelect = (event: SelectChangeEvent<string>) => {
-        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: event.target.value } : state));
+        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: event.target.value, error: '' } : state));
     }
 
     const onChangeDate = (event: PickerValue | null) => {
@@ -53,11 +53,11 @@ export default function getFieldState(
 
     const onChangeAutocomplete: ComponentProps<typeof Autocomplete>['onChange'] = (event, value) => {
         const onChangeValue = getOnChangeValue(field, value);
-        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: onChangeValue } : state));
+        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: onChangeValue, error: '' } : state));
     }
 
     const onChangeSwitch = (event: ChangeEvent<HTMLInputElement>, checked: boolean) => {
-        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: checked } : state));
+        controls.setFormState(controls.formState.map(state => state.field === field.id ? { ...state, value: checked, error: '' } : state));
     }
 
     

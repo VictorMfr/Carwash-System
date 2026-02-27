@@ -13,12 +13,12 @@ import Client from '../client';
 import db from '../../../../db';
 import { BelongsToGetAssociationMixin } from 'sequelize';
 import { BelongsToSetAssociationMixin } from 'sequelize';
-import Category from './category';
-import OpinionType from './opinionType';
 
 class Feedback extends Model<InferAttributes<Feedback>, InferCreationAttributes<Feedback>> {
     declare id: CreationOptional<number>;
     declare description: string;
+    declare opinionType: string;
+    declare category: string;
 
     // Belongs to Client
     declare Client: NonAttribute<Client>;
@@ -26,17 +26,6 @@ class Feedback extends Model<InferAttributes<Feedback>, InferCreationAttributes<
     declare setClient: BelongsToSetAssociationMixin<Client, number>;
     declare createClient: BelongsToCreateAssociationMixin<Client>;
 
-    // Belongs to Category
-    declare Category: NonAttribute<Category>;
-    declare getCategory: BelongsToGetAssociationMixin<Category>;
-    declare setCategory: BelongsToSetAssociationMixin<Category, number>;
-    declare createCategory: BelongsToCreateAssociationMixin<Category>;
-
-    // Belongs to OpinionType
-    declare OpinionType: NonAttribute<OpinionType>;
-    declare getOpinionType: BelongsToGetAssociationMixin<OpinionType>;
-    declare setOpinionType: BelongsToSetAssociationMixin<OpinionType, number>;
-    declare createOpinionType: BelongsToCreateAssociationMixin<OpinionType>;
 }
 
 export type FeedbackCreationAttributes = InferCreationAttributes<Feedback>;
@@ -51,7 +40,15 @@ Feedback.init({
     description: {
         type: DataTypes.TEXT,
         allowNull: false,
-    }
+    },
+    opinionType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    category: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
 }, {
     sequelize: db,
     modelName: 'Feedback',

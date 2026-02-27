@@ -7,7 +7,7 @@ export default function useFetch<FetchData>(
     contextDispatch?: Dispatch<SetStateAction<FetchData>>,
     contextLoading?: Dispatch<SetStateAction<boolean>>,
 ) {
-    const [data, setData] = useState<FetchData | any >();
+    const [data, setData] = useState<FetchData | any >([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
@@ -20,7 +20,6 @@ export default function useFetch<FetchData>(
                 contextLoading(false);
             } else {
                 setData(data);
-                console.log(data);
             }
         } catch (error) {
             console.error('Error fetching data:', error);

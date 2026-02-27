@@ -16,7 +16,7 @@ import {
     BelongsToManyCreateAssociationMixin,
     BelongsToManySetAssociationsMixin,
     BelongsToManyRemoveAssociationMixin,
-    BelongsToManyRemoveAssociationsMixin
+    BelongsToManyRemoveAssociationsMixin,
 } from 'sequelize';
 import db from '../../db';
 import Recipe from './recipe';
@@ -24,6 +24,7 @@ import Operator from './operator';
 import ServiceOperator from './serviceOperator';
 import Vehicle from './vehicle/vehicle';
 import StockDetails from '../stock/stockDetails';
+import Transaction from '@/services/backend/models/finance/transaction';
 
 class Service extends Model<InferAttributes<Service>, InferCreationAttributes<Service>> {
     declare id: CreationOptional<number>;
@@ -69,6 +70,12 @@ class Service extends Model<InferAttributes<Service>, InferCreationAttributes<Se
     declare removeStockDetail: BelongsToManyRemoveAssociationMixin<StockDetails, number>;
     declare removeStockDetails: BelongsToManyRemoveAssociationsMixin<StockDetails, number>;
     declare createStockDetail: BelongsToManyCreateAssociationMixin<StockDetails>;
+
+    // Belongs to Transaction
+    declare Transaction: NonAttribute<Transaction>;
+    declare getTransactions: BelongsToGetAssociationMixin<Transaction>;
+    declare setTransactions: BelongsToSetAssociationMixin<Transaction, number>;
+    declare createTransactions: BelongsToCreateAssociationMixin<Transaction>;
 }
 
 export type ServiceCreationAttributes = InferCreationAttributes<Service>;

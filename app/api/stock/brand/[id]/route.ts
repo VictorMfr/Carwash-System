@@ -1,4 +1,4 @@
-import { BrandSchema } from "@/lib/definitions";
+import { BrandObjectSchema } from "@/lib/definitions";
 import { Brand } from "@/services/backend/models/associations";
 import { NextRequest } from "next/server";
 import getModel from "@/lib/apiUtils/model/getModel";
@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         model: Brand,
         params,
         request,
-        validationSchema: BrandSchema,
+        validationSchema: BrandObjectSchema,
     });
 }
 

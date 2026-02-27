@@ -7,12 +7,25 @@ import deleteModels from "@/lib/apiUtils/model/deleteModels";
 
 // Crear producto
 export async function POST(request: NextRequest) {
-    return await createModel({
-        model: Product,
-        validationSchema: ProductObjectSchema,
-        request: request,
-        uniqueField: 'name',
-    });
+    try {
+        const data = await request.json();
+
+        if (!data.name || !data.unit) {
+            return NextResponse.json({ error: 'Name and unit are required' }, { status: 400 });
+        }
+
+        const product = await Product.create({
+            name: data.name,
+            unit: data.unit,
+            isTool: data.isTool?? false,
+        });
+
+        return NextResponse.json(product);
+
+    } catch (error) {
+        console.log(error);
+        return NextResponse.json({ error: 'Error creating product' }, { status: 500 });
+    }
 }
 
 // Obtener productos

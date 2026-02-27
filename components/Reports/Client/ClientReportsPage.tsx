@@ -177,6 +177,92 @@ interface ClientStatistics {
     lastServiceDate: string | null;
 }
 
+const asNumber = (value: unknown, fallback = 0): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return fallback;
+};
+
+const asString = (value: unknown, fallback = ''): string => {
+    return typeof value === 'string' ? value : fallback;
+};
+
+const extractArray = (value: unknown, possibleKeys: string[]): unknown[] => {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+        for (const key of possibleKeys) {
+            if (Array.isArray(record[key])) {
+                return record[key] as unknown[];
+            }
+        }
+    }
+    return [];
+};
+
+const normalizeClientRow = (row: unknown, index: number): ClientData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    return {
+        id: asNumber(item.id, index + 1),
+        name: asString(item.name, 'N/A'),
+        lastname: asString(item.lastname, ''),
+        phone: asString(item.phone, 'N/A')
+    };
+};
+
+const normalizeServiceRow = (row: unknown, index: number): ServiceData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    return {
+        id: asNumber(item.id, index + 1),
+        date: asString(item.date, dayjs().toISOString()),
+        client: asString(item.client, 'N/A'),
+        vehicleLicensePlate: asString(item.vehicleLicensePlate, 'N/A'),
+        bol_charge: asNumber(item.bol_charge, 0),
+        dollar_charge: item.dollar_charge == null ? null : asNumber(item.dollar_charge, 0),
+        status: asString(item.status, 'Pendiente')
+    };
+};
+
+const normalizeClients = (value: unknown): ClientData[] => {
+    return extractArray(value, ['clients', 'data', 'rows', 'results']).map(normalizeClientRow);
+};
+
+const normalizeServices = (value: unknown): ServiceData[] => {
+    return extractArray(value, ['services', 'data', 'rows', 'results']).map(normalizeServiceRow);
+};
+
+class ReportPdfErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error) {
+        console.error('Error rendering Client report PDF:', error);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+                    <Alert severity="error">
+                        Error al generar el reporte PDF. Verifica los datos de clientes e intenta nuevamente.
+                    </Alert>
+                </Box>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
 // Export pages so they can be composed in a single PDF
 export const ClientReportPages = ({ 
     clients, 
@@ -215,6 +301,8 @@ export const ClientReportPages = ({
             stats.lastServiceDate = service.date;
         }
     });
+
+    
     
     const clientStats = Array.from(clientStatsMap.values())
         .sort((a, b) => b.totalServices - a.totalServices);
@@ -492,6 +580,8 @@ export default function ClientReportsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    console.log(services)
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -513,8 +603,8 @@ export default function ClientReportsPage() {
                 const clientsData = await clientsRes.json();
                 const servicesData = await servicesRes.json();
 
-                setClients(clientsData);
-                setServices(servicesData);
+                setClients(normalizeClients(clientsData));
+                setServices(normalizeServices(servicesData));
             } catch (err: any) {
                 setError(err.message || 'Error al cargar los datos');
             } finally {
@@ -543,12 +633,14 @@ export default function ClientReportsPage() {
 
     return (
         <Box sx={{ width: '100vw', height: '100vh' }}>
-            <PDFViewer height={'100%'} width={'100%'}>
-                <ClientReportDocument 
-                    clients={clients} 
-                    services={services} 
-                />
-            </PDFViewer>
+            <ReportPdfErrorBoundary>
+                <PDFViewer height={'100%'} width={'100%'}>
+                    <ClientReportDocument 
+                        clients={clients} 
+                        services={services} 
+                    />
+                </PDFViewer>
+            </ReportPdfErrorBoundary>
         </Box>
     );
 }

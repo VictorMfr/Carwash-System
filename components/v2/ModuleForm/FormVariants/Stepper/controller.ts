@@ -8,7 +8,7 @@ export default function useStepperController() {
 
     return {
         controls: controls as stepperFormStateControls,
-        settings,
+        settings: { ...settings, config: { ...settings.config, size: 12, flexDirection: 'column' as any } },
         stepperOrientation: (settings.fields as formStepper).orientation,
     }
 }

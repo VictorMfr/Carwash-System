@@ -6,12 +6,15 @@ export default function useDollarRatesController() {
 
     useEffect(() => {
         const load = async () => {
-            const res = await fetch('https://ve.dolarapi.com/v1/dolares');
-            if (res.ok) {
-                const data = await res.json();
-                setDollarRates(data);
+            try {
+                const res = await fetch('https://ve.dolarapi.com/v1/dolares');
+                if (res.ok) {
+                    const data = await res.json();
+                    setDollarRates(data);
+                }
+            } catch {
+                setLoading(false);
             }
-            setLoading(false);
         }
         load();
     }, []);

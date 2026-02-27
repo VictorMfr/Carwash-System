@@ -2,7 +2,7 @@ import { FailureSchema } from "@/lib/definitions";
 import { ModuleFormGridData } from "@/types/datagrid/datagrid";
 import PictureCartItem from "@/components/ModuleForm/Inputs/Cart/PictureCartItem";
 import { GridRenderCellParams } from "@mui/x-data-grid";
-import { Chip, Typography } from "@mui/material";
+import { Chip } from "@mui/material";
 
 const FailuresModule: ModuleFormGridData = {
     url: '/api/stock/failures',

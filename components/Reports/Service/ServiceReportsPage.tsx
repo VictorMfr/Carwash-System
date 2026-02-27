@@ -5,6 +5,434 @@ import { Page, Text, View, Document, StyleSheet, PDFViewer } from '@react-pdf/re
 import { Box, CircularProgress, Alert } from '@mui/material';
 import dayjs from 'dayjs';
 
+
+
+interface ServiceData {
+    id: number;
+    date: string;
+    recipeName: string;
+    vehicleLicensePlate: string;
+    client: string;
+    bol_charge: number;
+    dollar_charge: number | null;
+    dollar_rate: number;
+    status: string;
+    operators: Array<{ id: number; name: string; lastname: string }>;
+}
+
+interface ServiceStatistics {
+    servicesByRecipe: Array<{ id: number; value: number; label: string }>;
+    servicesByVehicle: Array<{ id: number; value: number; label: string }>;
+    servicesByOperator: Array<{ id: number; value: number; label: string }>;
+    servicesByMonth: Array<{ month: string; count: number }>;
+}
+
+const EMPTY_SERVICE_STATISTICS: ServiceStatistics = {
+    servicesByRecipe: [],
+    servicesByVehicle: [],
+    servicesByOperator: [],
+    servicesByMonth: []
+};
+
+const asNumber = (value: unknown, fallback = 0): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return fallback;
+};
+
+const asString = (value: unknown, fallback = ''): string => {
+    return typeof value === 'string' ? value : fallback;
+};
+
+const extractArray = (value: unknown, possibleKeys: string[]): unknown[] => {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+        for (const key of possibleKeys) {
+            if (Array.isArray(record[key])) {
+                return record[key] as unknown[];
+            }
+        }
+    }
+    return [];
+};
+
+const normalizeServiceRow = (row: unknown, index: number): ServiceData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    const operatorsRaw = Array.isArray(item.operators) ? item.operators : [];
+
+    return {
+        id: asNumber(item.id, index + 1),
+        date: asString(item.date, dayjs().toISOString()),
+        recipeName: asString(item.recipeName, 'N/A'),
+        vehicleLicensePlate: asString(item.vehicleLicensePlate, 'N/A'),
+        client: asString(item.client, 'N/A'),
+        bol_charge: asNumber(item.bol_charge, 0),
+        dollar_charge: item.dollar_charge == null ? null : asNumber(item.dollar_charge, 0),
+        dollar_rate: asNumber(item.dollar_rate, 0),
+        status: asString(item.status, 'Pendiente'),
+        operators: operatorsRaw.map((operator, operatorIndex) => {
+            const op = (operator && typeof operator === 'object')
+                ? (operator as Record<string, unknown>)
+                : {};
+            return {
+                id: asNumber(op.id, operatorIndex + 1),
+                name: asString(op.name, ''),
+                lastname: asString(op.lastname, '')
+            };
+        })
+    };
+};
+
+const normalizeServices = (value: unknown): ServiceData[] => {
+    return extractArray(value, ['services', 'data', 'rows', 'results']).map(normalizeServiceRow);
+};
+
+const normalizeStatisticsSeries = (value: unknown): Array<{ id: number; value: number; label: string }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row, index) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            id: asNumber(item.id, index + 1),
+            value: asNumber(item.value, 0),
+            label: asString(item.label, 'N/A')
+        };
+    });
+};
+
+const normalizeMonthSeries = (value: unknown): Array<{ month: string; count: number }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            month: asString(item.month, 'N/A'),
+            count: asNumber(item.count, 0)
+        };
+    });
+};
+
+const normalizeServiceStatistics = (value: unknown): ServiceStatistics => {
+    const statsSource = (value && typeof value === 'object') ? (value as Record<string, unknown>) : {};
+    return {
+        servicesByRecipe: normalizeStatisticsSeries(statsSource.servicesByRecipe),
+        servicesByVehicle: normalizeStatisticsSeries(statsSource.servicesByVehicle),
+        servicesByOperator: normalizeStatisticsSeries(statsSource.servicesByOperator),
+        servicesByMonth: normalizeMonthSeries(statsSource.servicesByMonth)
+    };
+};
+
+export default function ServiceReportsPage() {
+
+    const [services, setServices] = useState<ServiceData[]>([]);
+    const [statistics, setStatistics] = useState<ServiceStatistics>(EMPTY_SERVICE_STATISTICS);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const totalServices = services.length;
+    const totalRevenue = services.reduce((sum, s) => sum + s.bol_charge, 0);
+    const totalDollarRevenue = services.reduce((sum, s) => sum + (s.dollar_charge || 0), 0);
+    const avgRevenue = totalServices > 0 ? totalRevenue / totalServices : 0;
+    const avgDollarRate = totalServices > 0
+        ? services.reduce((sum, s) => sum + s.dollar_rate, 0) / totalServices
+        : 0;
+
+    const completedServices = services.filter(s => s.status === 'Completado').length;
+    const pendingServices = services.filter(s => s.status === 'Pendiente').length;
+    const completionRate = totalServices > 0 ? (completedServices / totalServices) * 100 : 0;
+
+    const maxRevenue = services.length > 0
+        ? Math.max(...services.map(s => s.bol_charge))
+        : 0;
+    const minRevenue = services.length > 0
+        ? Math.min(...services.map(s => s.bol_charge))
+        : 0;
+
+    const totalOperators = new Set(services.flatMap(s => s.operators.map(op => op.id))).size;
+    const totalClients = new Set(services.map(s => s.client)).size;
+    const totalVehicles = new Set(services.map(s => s.vehicleLicensePlate)).size;
+
+    // Últimos 10 servicios
+    const recentServices = [...services]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10);
+
+    const currentDate = dayjs().format('DD/MM/YYYY');
+    const currentTime = dayjs().format('HH:mm:ss');
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+
+            // Buscar ambos endpoints en paralelo para optimizar tiempos de carga
+            const [servicesRes, statsRes] = await Promise.all([
+                fetch('/api/service'),
+                fetch('/api/service/statistics')
+            ]);
+
+            if (!servicesRes.ok) {
+                throw new Error('Error al cargar los servicios');
+            }
+            if (!statsRes.ok) {
+                throw new Error('Error al cargar las estadísticas');
+            }
+
+            const servicesData = await servicesRes.json();
+            const statsData = await statsRes.json();
+
+            console.log(servicesData)
+
+            setServices(normalizeServices(servicesData));
+            setStatistics(normalizeServiceStatistics(statsData));
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar los datos');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <Box sx={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+                <Alert severity="error">{error}</Alert>
+            </Box>
+        );
+    }
+
+    return (
+        <Box sx={{ width: '100vw', height: '100vh' }}>
+            <PDFViewer height={'100%'} width={'100%'}>
+                <Document>
+                    <Page size="A4" style={styles.page}>
+                        <View style={styles.header}>
+                            <Text style={styles.title}>REPORTE DE SERVICIOS</Text>
+                            <Text style={styles.subtitle}>Fecha de generación: {currentDate} a las {currentTime}</Text>
+                        </View>
+
+                        {/* Resumen Ejecutivo */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Resumen Ejecutivo</Text>
+                            <View style={styles.summary}>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Total de servicios:</Text>
+                                    <Text style={styles.summaryValue}>{totalServices}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Servicios completados:</Text>
+                                    <Text style={styles.summaryValue}>{completedServices}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Servicios pendientes:</Text>
+                                    <Text style={styles.summaryValue}>{pendingServices}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Tasa de completación:</Text>
+                                    <Text style={styles.summaryValue}>{completionRate.toFixed(1)}%</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Total de ingresos (Bs):</Text>
+                                    <Text style={styles.summaryValue}>Bs. {totalRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Total de ingresos ($):</Text>
+                                    <Text style={styles.summaryValue}>$ {totalDollarRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Total de clientes únicos:</Text>
+                                    <Text style={styles.summaryValue}>{totalClients}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Total de vehículos atendidos:</Text>
+                                    <Text style={styles.summaryValue}>{totalVehicles}</Text>
+                                </View>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Total de operadores:</Text>
+                                    <Text style={styles.summaryValue}>{totalOperators}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Estadísticas de Servicios */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Estadísticas de Servicios</Text>
+                            <View style={styles.statsGrid}>
+                                <View style={styles.statsBox}>
+                                    <Text style={styles.statsLabel}>Ingreso Promedio por Servicio</Text>
+                                    <Text style={styles.statsValue}>Bs. {avgRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                                </View>
+                                <View style={styles.statsBox}>
+                                    <Text style={styles.statsLabel}>Tasa Promedio de Dólar</Text>
+                                    <Text style={styles.statsValue}>Bs. {avgDollarRate.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                                </View>
+                                <View style={styles.statsBox}>
+                                    <Text style={styles.statsLabel}>Mayor Ingreso Individual</Text>
+                                    <Text style={styles.statsValue}>Bs. {maxRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                                </View>
+                                <View style={styles.statsBox}>
+                                    <Text style={styles.statsLabel}>Menor Ingreso Individual</Text>
+                                    <Text style={styles.statsValue}>Bs. {minRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Servicios por Receta */}
+                        {statistics.servicesByRecipe && statistics.servicesByRecipe.length > 0 ? (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Receta</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableHeader}>
+                                        <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Receta</Text>
+                                        <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad</Text>
+                                    </View>
+                                    {statistics.servicesByRecipe.map((item) => (
+                                        <View key={item.id} style={styles.tableRow}>
+                                            <Text style={[styles.tableCell, { flex: 2 }]}>{item.label}</Text>
+                                            <Text style={[styles.tableCell, { flex: 1 }]}>{item.value}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Receta</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableRow}>
+                                        <Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por receta.</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Servicios por Mes */}
+                        {statistics.servicesByMonth && statistics.servicesByMonth.length > 0 ? (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Mes (Últimos 6 meses)</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableHeader}>
+                                        <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Mes</Text>
+                                        <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad</Text>
+                                    </View>
+                                    {statistics.servicesByMonth.map((item, index) => (
+                                        <View key={index} style={styles.tableRow}>
+                                            <Text style={[styles.tableCell, { flex: 2 }]}>{item.month}</Text>
+                                            <Text style={[styles.tableCell, { flex: 1 }]}>{item.count}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Mes (Últimos 6 meses)</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableRow}>
+                                        <Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por mes.</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+
+                        {pendingServices > 0 && (
+                            <View style={styles.warning}>
+                                <Text style={styles.warningText}>
+                                    Nota: {pendingServices} servicio(s) pendiente(s) de completar.
+                                </Text>
+                            </View>
+                        )}
+
+                        <View style={styles.footer}>
+                            <Text>Página 1 de 2 | Generado el {currentDate} | Sistema de Gestión de Servicios</Text>
+                        </View>
+                    </Page>
+
+                    {/* Segunda Página - Tablas Detalladas */}
+                    <Page size="A4" style={styles.page}>
+                        <View style={styles.header}>
+                            <Text style={styles.title}>SERVICIOS Y OPERADORES</Text>
+                        </View>
+
+                        {/* Servicios por Operador */}
+                        {statistics.servicesByOperator && statistics.servicesByOperator.length > 0 ? (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Operador</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableHeader}>
+                                        <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Operador</Text>
+                                        <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad de Servicios</Text>
+                                    </View>
+                                    {statistics.servicesByOperator.map((item) => (
+                                        <View key={item.id} style={styles.tableRow}>
+                                            <Text style={[styles.tableCell, { flex: 2 }]}>{item.label}</Text>
+                                            <Text style={[styles.tableCell, { flex: 1 }]}>{item.value}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Operador</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableRow}>
+                                        <Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por operador.</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Servicios por Vehículo */}
+                        {statistics.servicesByVehicle && statistics.servicesByVehicle.length > 0 ? (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Vehículo (Top 10)</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableHeader}>
+                                        <Text style={[styles.tableHeaderCell, { flex: 0.5 }]}>#</Text>
+                                        <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Placa</Text>
+                                        <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad</Text>
+                                    </View>
+                                    {statistics.servicesByVehicle.slice(0, 10).map((item, index) => (
+                                        <View key={item.id} style={styles.tableRow}>
+                                            <Text style={[styles.tableCell, { flex: 0.5 }]}>{index + 1}</Text>
+                                            <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.label}</Text>
+                                            <Text style={[styles.tableCell, { flex: 1 }]}>{item.value}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Servicios por Vehículo (Top 10)</Text>
+                                <View style={styles.table}>
+                                    <View style={styles.tableRow}>
+                                        <Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por vehículo.</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+
+                        <View style={styles.footer}>
+                            <Text>Página 2 de 2 | Generado el {currentDate} | Sistema de Gestión de Servicios</Text>
+                        </View>
+                    </Page>
+                </Document>
+            </PDFViewer>
+        </Box>
+    );
+}
+
+
 // Create styles - Academic/Neutral Style - Compact
 const styles = StyleSheet.create({
     page: {
@@ -150,402 +578,3 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
 });
-
-interface ServiceData {
-    id: number;
-    date: string;
-    recipeName: string;
-    vehicleLicensePlate: string;
-    client: string;
-    bol_charge: number;
-    dollar_charge: number | null;
-    dollar_rate: number;
-    status: string;
-    operators: Array<{ id: number; name: string; lastname: string }>;
-}
-
-interface ServiceStatistics {
-    servicesByRecipe: Array<{ id: number; value: number; label: string }>;
-    servicesByVehicle: Array<{ id: number; value: number; label: string }>;
-    servicesByOperator: Array<{ id: number; value: number; label: string }>;
-    servicesByMonth: Array<{ month: string; count: number }>;
-}
-
-// Export pages so they can be composed in a single PDF
-export const ServiceReportPages = ({ 
-    services, 
-    statistics 
-}: { 
-    services: ServiceData[], 
-    statistics: ServiceStatistics 
-}) => {
-    const totalServices = services.length;
-    const totalRevenue = services.reduce((sum, s) => sum + s.bol_charge, 0);
-    const totalDollarRevenue = services.reduce((sum, s) => sum + (s.dollar_charge || 0), 0);
-    const avgRevenue = totalServices > 0 ? totalRevenue / totalServices : 0;
-    const avgDollarRate = totalServices > 0 
-        ? services.reduce((sum, s) => sum + s.dollar_rate, 0) / totalServices 
-        : 0;
-    
-    const completedServices = services.filter(s => s.status === 'Completado').length;
-    const pendingServices = services.filter(s => s.status === 'Pendiente').length;
-    const completionRate = totalServices > 0 ? (completedServices / totalServices) * 100 : 0;
-    
-    const maxRevenue = services.length > 0
-        ? Math.max(...services.map(s => s.bol_charge))
-        : 0;
-    const minRevenue = services.length > 0
-        ? Math.min(...services.map(s => s.bol_charge))
-        : 0;
-    
-    const totalOperators = new Set(services.flatMap(s => s.operators.map(op => op.id))).size;
-    const totalClients = new Set(services.map(s => s.client)).size;
-    const totalVehicles = new Set(services.map(s => s.vehicleLicensePlate)).size;
-    
-    // Últimos 10 servicios
-    const recentServices = [...services]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 10);
-    
-    const currentDate = dayjs().format('DD/MM/YYYY');
-    const currentTime = dayjs().format('HH:mm:ss');
-
-    return (
-        <>
-            <Page size="A4" style={styles.page}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>REPORTE DE SERVICIOS</Text>
-                    <Text style={styles.subtitle}>Fecha de generación: {currentDate} a las {currentTime}</Text>
-                </View>
-
-                {/* Resumen Ejecutivo */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Resumen Ejecutivo</Text>
-                    <View style={styles.summary}>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Total de servicios:</Text>
-                            <Text style={styles.summaryValue}>{totalServices}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Servicios completados:</Text>
-                            <Text style={styles.summaryValue}>{completedServices}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Servicios pendientes:</Text>
-                            <Text style={styles.summaryValue}>{pendingServices}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Tasa de completación:</Text>
-                            <Text style={styles.summaryValue}>{completionRate.toFixed(1)}%</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Total de ingresos (Bs):</Text>
-                            <Text style={styles.summaryValue}>Bs. {totalRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Total de ingresos ($):</Text>
-                            <Text style={styles.summaryValue}>$ {totalDollarRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Total de clientes únicos:</Text>
-                            <Text style={styles.summaryValue}>{totalClients}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Total de vehículos atendidos:</Text>
-                            <Text style={styles.summaryValue}>{totalVehicles}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Total de operadores:</Text>
-                            <Text style={styles.summaryValue}>{totalOperators}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Estadísticas de Servicios */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Estadísticas de Servicios</Text>
-                    <View style={styles.statsGrid}>
-                        <View style={styles.statsBox}>
-                            <Text style={styles.statsLabel}>Ingreso Promedio por Servicio</Text>
-                            <Text style={styles.statsValue}>Bs. {avgRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                        </View>
-                        <View style={styles.statsBox}>
-                            <Text style={styles.statsLabel}>Tasa Promedio de Dólar</Text>
-                            <Text style={styles.statsValue}>Bs. {avgDollarRate.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                        </View>
-                        <View style={styles.statsBox}>
-                            <Text style={styles.statsLabel}>Mayor Ingreso Individual</Text>
-                            <Text style={styles.statsValue}>Bs. {maxRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                        </View>
-                        <View style={styles.statsBox}>
-                            <Text style={styles.statsLabel}>Menor Ingreso Individual</Text>
-                            <Text style={styles.statsValue}>Bs. {minRevenue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Servicios por Receta */}
-{statistics.servicesByRecipe && statistics.servicesByRecipe.length > 0 ? (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Servicios por Receta</Text>
-                        <View style={styles.table}>
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Receta</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad</Text>
-                            </View>
-                            {statistics.servicesByRecipe.map((item) => (
-                                <View key={item.id} style={styles.tableRow}>
-                                    <Text style={[styles.tableCell, { flex: 2 }]}>{item.label}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1 }]}>{item.value}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
- ) : (
-	<View style={styles.section}>
-		<Text style={styles.sectionTitle}>Servicios por Receta</Text>
-		<View style={styles.table}>
-			<View style={styles.tableRow}>
-				<Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por receta.</Text>
-			</View>
-		</View>
-	</View>
-)}
-
-                {/* Servicios por Mes */}
-{statistics.servicesByMonth && statistics.servicesByMonth.length > 0 ? (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Servicios por Mes (Últimos 6 meses)</Text>
-                        <View style={styles.table}>
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Mes</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad</Text>
-                            </View>
-                            {statistics.servicesByMonth.map((item, index) => (
-                                <View key={index} style={styles.tableRow}>
-                                    <Text style={[styles.tableCell, { flex: 2 }]}>{item.month}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1 }]}>{item.count}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
- ) : (
-	<View style={styles.section}>
-		<Text style={styles.sectionTitle}>Servicios por Mes (Últimos 6 meses)</Text>
-		<View style={styles.table}>
-			<View style={styles.tableRow}>
-				<Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por mes.</Text>
-			</View>
-		</View>
-	</View>
-)}
-
-                {pendingServices > 0 && (
-                    <View style={styles.warning}>
-                        <Text style={styles.warningText}>
-                            Nota: {pendingServices} servicio(s) pendiente(s) de completar.
-                        </Text>
-                    </View>
-                )}
-
-                <View style={styles.footer}>
-                    <Text>Página 1 de 2 | Generado el {currentDate} | Sistema de Gestión de Servicios</Text>
-                </View>
-            </Page>
-
-            {/* Segunda Página - Tablas Detalladas */}
-            <Page size="A4" style={styles.page}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>SERVICIOS Y OPERADORES</Text>
-                </View>
-
-                {/* Servicios por Operador */}
-{statistics.servicesByOperator && statistics.servicesByOperator.length > 0 ? (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Servicios por Operador</Text>
-                        <View style={styles.table}>
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Operador</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad de Servicios</Text>
-                            </View>
-                            {statistics.servicesByOperator.map((item) => (
-                                <View key={item.id} style={styles.tableRow}>
-                                    <Text style={[styles.tableCell, { flex: 2 }]}>{item.label}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1 }]}>{item.value}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
- ) : (
-	<View style={styles.section}>
-		<Text style={styles.sectionTitle}>Servicios por Operador</Text>
-		<View style={styles.table}>
-			<View style={styles.tableRow}>
-				<Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por operador.</Text>
-			</View>
-		</View>
-	</View>
-)}
-
-                {/* Servicios por Vehículo */}
-{statistics.servicesByVehicle && statistics.servicesByVehicle.length > 0 ? (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Servicios por Vehículo (Top 10)</Text>
-                        <View style={styles.table}>
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { flex: 0.5 }]}>#</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Placa</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Cantidad</Text>
-                            </View>
-                            {statistics.servicesByVehicle.slice(0, 10).map((item, index) => (
-                                <View key={item.id} style={styles.tableRow}>
-                                    <Text style={[styles.tableCell, { flex: 0.5 }]}>{index + 1}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.label}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1 }]}>{item.value}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
- ) : (
-	<View style={styles.section}>
-		<Text style={styles.sectionTitle}>Servicios por Vehículo (Top 10)</Text>
-		<View style={styles.table}>
-			<View style={styles.tableRow}>
-				<Text style={[styles.tableCell, { flex: 1 }]}>No hay datos de servicios por vehículo.</Text>
-			</View>
-		</View>
-	</View>
-)}
-
-                {/* Últimos Servicios */}
-{recentServices.length > 0 ? (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Últimos 10 Servicios</Text>
-                        <View style={styles.table}>
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Fecha</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Cliente</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Receta</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Ingreso</Text>
-                                <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Estado</Text>
-                            </View>
-                            {recentServices.map((service) => (
-                                <View key={service.id} style={styles.tableRow}>
-                                    <Text style={[styles.tableCell, { flex: 0.8 }]}>
-                                        {dayjs(service.date).format('DD/MM/YYYY')}
-                                    </Text>
-                                    <Text style={[styles.tableCell, { flex: 1.2 }]}>{service.client || 'N/A'}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1 }]}>{service.recipeName || 'N/A'}</Text>
-                                    <Text style={[styles.tableCell, { flex: 1 }]}>
-                                        Bs. {service.bol_charge.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </Text>
-                                    <Text style={[styles.tableCell, { flex: 0.8, fontStyle: service.status === 'Pendiente' ? 'italic' : 'normal' }]}>
-                                        {service.status}
-                                    </Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
- ) : (
-	<View style={styles.section}>
-		<Text style={styles.sectionTitle}>Últimos 10 Servicios</Text>
-		<View style={styles.table}>
-			<View style={styles.tableRow}>
-				<Text style={[styles.tableCell, { flex: 1 }]}>No hay servicios recientes.</Text>
-			</View>
-		</View>
-	</View>
-)}
-
-                <View style={styles.footer}>
-                    <Text>Página 2 de 2 | Generado el {currentDate} | Sistema de Gestión de Servicios</Text>
-                </View>
-            </Page>
-        </>
-    );
-};
-
-// Create Document Component (standalone viewer)
-const ServiceReportDocument = ({ 
-    services, 
-    statistics 
-}: { 
-    services: ServiceData[], 
-    statistics: ServiceStatistics 
-}) => (
-    <Document>
-        <ServiceReportPages services={services} statistics={statistics} />
-    </Document>
-);
-
-export default function ServiceReportsPage() {
-    const [services, setServices] = useState<ServiceData[]>([]);
-    const [statistics, setStatistics] = useState<ServiceStatistics>({
-        servicesByRecipe: [],
-        servicesByVehicle: [],
-        servicesByOperator: [],
-        servicesByMonth: []
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                
-                // Fetch all data in parallel
-                const [servicesRes, statsRes] = await Promise.all([
-                    fetch('/api/service'),
-                    fetch('/api/service/statistics')
-                ]);
-
-                if (!servicesRes.ok) {
-                    throw new Error('Error al cargar los servicios');
-                }
-                if (!statsRes.ok) {
-                    throw new Error('Error al cargar las estadísticas');
-                }
-
-                const servicesData = await servicesRes.json();
-                const statsData = await statsRes.json();
-
-                setServices(servicesData);
-                setStatistics(statsData);
-            } catch (err: any) {
-                setError(err.message || 'Error al cargar los datos');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    if (loading) {
-        return (
-            <Box sx={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return (
-            <Box sx={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
-                <Alert severity="error">{error}</Alert>
-            </Box>
-        );
-    }
-
-    return (
-        <Box sx={{ width: '100vw', height: '100vh' }}>
-            <PDFViewer height={'100%'} width={'100%'}>
-                <ServiceReportDocument 
-                    services={services} 
-                    statistics={statistics} 
-                />
-            </PDFViewer>
-        </Box>
-    );
-}

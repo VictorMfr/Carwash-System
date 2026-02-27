@@ -17,7 +17,7 @@ import {
 import db from '../../../db';
 import Service from '../service';
 import VehicleBrand from './brand';
-import Client from '../client';
+import Client from '../client/client';
 import VehicleModel from './model';
 
 class Vehicle extends SequelizeModel<InferAttributes<Vehicle>, InferCreationAttributes<Vehicle>> {

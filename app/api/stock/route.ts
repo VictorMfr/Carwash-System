@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
             ...stock.toJSON(),
             product: product.name,
             unit: product.unit,
+            total_quantity: 0,
         };
 
         return NextResponse.json(formatted);
@@ -92,7 +93,7 @@ export async function GET() {
                 ...json,
                 product: json.Product.name,
                 unit: json.Product.unit,
-                total,
+                total_quantity: total,
             }
         });
     });

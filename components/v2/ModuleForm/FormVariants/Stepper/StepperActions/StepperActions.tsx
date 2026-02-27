@@ -1,4 +1,4 @@
-import { Stack, Button } from "@mui/material";
+import { CircularProgress, Stack, Button } from "@mui/material";
 import useStepperActionsController from "./controller/controller";
 
 export default function StepperActions() {
@@ -26,6 +26,9 @@ export default function StepperActions() {
                 variant="contained"
                 color="primary"
                 onClick={controller.handleSubmit}
+                loading={controller.submitLoading}
+                disabled={controller.submitLoading}
+                startIcon={controller.submitLoading ? <CircularProgress size={18} color="inherit" /> : undefined}
             >
                 Enviar
             </Button>}

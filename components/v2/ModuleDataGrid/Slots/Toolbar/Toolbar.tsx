@@ -3,22 +3,22 @@ import QuickFilter from "./QuickFilter/QuickFilter";
 import Filter from "./Filter/Filter";
 import Export from "./Export/Export";
 import Download from "./Download/Download";
-import Density from "./Density/Density";
 import Create from "./Create/Create";
-import ColumnFilter from "./ColumnFilter/ColumnFilter";
 import BulkDelete from "./BulkDelete/BulkDelete";
+import useToolbarController from "./controller";
 
 export default function Toolbar() {
+
+    const controller = useToolbarController();
+
     return (
         <MuiToolbar>
-            <QuickFilter/>
-            <Filter/>
-            <Export/>
-            <Download/>
-            <Density/>
-            <Create/>
-            <ColumnFilter/>
-            <BulkDelete/>
+            {controller.isQuickFilterEnabled && <QuickFilter/>}
+            {controller.isFilterEnabled && <Filter/>}
+            {controller.isExportEnabled && <Export/>}
+            {controller.isDownloadEnabled && <Download/>}
+            {controller.isCreateEnabled && <Create/>}
+            {controller.isBulkDeleteEnabled && <BulkDelete/>}
         </MuiToolbar>
     );
 }

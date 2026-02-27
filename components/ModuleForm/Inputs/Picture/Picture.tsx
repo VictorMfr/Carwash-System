@@ -1,4 +1,4 @@
-import React, { useState, useRef, Fragment, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 import ReactCrop, { centerCrop, makeAspectCrop, Crop, PixelCrop } from 'react-image-crop'
 import { canvasPreview } from './Crop/canvasPreview'

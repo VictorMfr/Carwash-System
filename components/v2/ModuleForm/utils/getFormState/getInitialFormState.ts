@@ -5,7 +5,6 @@ import getInitialStateValue from "../getInitialStateValue";
 
 export default function getInitialFormState(
     fields: formVanilla[] | formStepper,
-    keepValues?: boolean
 ): formStateField[] {
     // Si fields es un array, significa que es un formVanilla
     if (Array.isArray(fields)) {

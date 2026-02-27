@@ -8,7 +8,7 @@ export default function Form() {
     const controller = useModuleFormController();
 
     return (
-        <Grid container size={12}>
+        <Grid container {...controller.settings.config}>
             {controller.formType === 'vanilla' && <Vanilla/>}
             {controller.formType === 'stepper' && <Stepper />}
         </Grid>

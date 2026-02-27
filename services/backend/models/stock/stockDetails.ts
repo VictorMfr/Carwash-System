@@ -40,6 +40,7 @@ class StockDetails extends Model<InferAttributes<StockDetails>, InferCreationAtt
     declare quantity: number;
     declare entry_date: Date;
     declare picture: string | null;
+    declare StockId: CreationOptional<number>;
 
     // Belongs to Transaction
     declare Transaction: NonAttribute<Transaction>;
@@ -111,6 +112,14 @@ StockDetails.init({
     picture: {
         type: DataTypes.STRING,
         allowNull: true,
+    },
+    StockId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Stock,
+            key: 'id',
+        },
+        allowNull: false,
     },
 }, {
     sequelize: db,

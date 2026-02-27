@@ -1,5 +1,5 @@
 import formVanilla from "@/types/v2/form/formVariants/formVanilla/formVanilla";
-import { FormControl } from "@mui/material";
+import { FormControl, FormHelperText } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -20,9 +20,9 @@ export default function DateInput({ field }: { field: formVanilla }) {
                     value={state.value ? dayjs(state.value, 'DD-MM-YYYY') : null}
                     onChange={onChange}
                     format="DD-MM-YYYY"
-                    disabled={effects.disable}
-                    
+                    disabled={effects?.disable}
                 />
+                <FormHelperText error={!!state.error}>{state.error}</FormHelperText>
             </FormControl>
         </LocalizationProvider>
     );

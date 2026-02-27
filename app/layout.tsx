@@ -19,6 +19,10 @@ export default async function RootLayoutServer({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=0.9" />
+        <title>LA MANO DE DIOS</title>
+      </head>
       <body className={inter.className}>
         <AppRouterCacheProvider>
           {children}

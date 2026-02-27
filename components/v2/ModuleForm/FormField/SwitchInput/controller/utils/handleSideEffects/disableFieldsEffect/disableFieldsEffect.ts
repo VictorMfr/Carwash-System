@@ -13,6 +13,7 @@ export default function disableFieldsEffect(field: formVanilla, moduleFormContex
 
     const getFields = fieldsToDisable.map(field => field.field);
 
+    const valuesToSet: Record<string, any> = {};
     const newFormEffects = moduleFormContext.formEffects.map(effect => {
         if (getFields.includes(effect.field)) {
             
@@ -23,13 +24,15 @@ export default function disableFieldsEffect(field: formVanilla, moduleFormContex
             }
 
             // Si el campo no estaba desactivado, se debe desactivar
+            const value = getDisabledValue(effect.field, field, moduleFormContext);
             const newEffect = {
                 ...effect,
                 disabled: true, 
-                value: getDisabledValue(effect.field, field, moduleFormContext) // Se intenta llenar el valor del campo con el valor de la switch si existe
+                value // Se intenta llenar el valor del campo con el valor de la switch si existe
             };
 
-            if (newEffect.value) {
+            if (value !== null && value !== undefined) {
+                valuesToSet[effect.field] = value;
                 return newEffect;
             }
 
@@ -39,4 +42,14 @@ export default function disableFieldsEffect(field: formVanilla, moduleFormContex
     });
 
     moduleFormContext.setFormEffects(newFormEffects);
+
+    if (Object.keys(valuesToSet).length > 0) {
+        moduleFormContext.controls.setFormState(prev =>
+            prev.map(state =>
+                Object.prototype.hasOwnProperty.call(valuesToSet, state.field)
+                    ? { ...state, value: valuesToSet[state.field], error: '' }
+                    : state
+            )
+        );
+    }
 }

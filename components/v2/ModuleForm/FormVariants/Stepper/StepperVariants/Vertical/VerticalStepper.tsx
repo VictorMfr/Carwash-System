@@ -1,14 +1,15 @@
 import useVerticalStepperController from "./controller";
-import { Stepper, Grid, Step, StepLabel, StepContent as MuiStepContent, Stack } from "@mui/material";
+import { Stepper, Step, StepLabel, StepContent as MuiStepContent, Stack } from "@mui/material";
 import ModuleForm from "../../../..";
 import StepperActions from "../../StepperActions/StepperActions";
+import { Fragment } from "react";
 
 export default function VerticalStepper() {
 
     const controller = useVerticalStepperController();
 
     return (
-        <Grid container {...controller.settings.config}>
+        <Fragment>
             <Stepper
                 activeStep={controller.controls.stepper.activeStep}
                 orientation={'vertical'}
@@ -32,6 +33,6 @@ export default function VerticalStepper() {
                     </Step>
                 ))}
             </Stepper>
-        </Grid>
+        </Fragment>
     );
 }

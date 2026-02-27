@@ -1,7 +1,7 @@
 import getModel from "@/lib/apiUtils/model/getModel";
 import updateModel from "@/lib/apiUtils/model/updateModel";
 import deleteModel from "@/lib/apiUtils/model/deleteModel";
-import { ModelSchema } from "@/lib/definitions";
+import { ModelObjectSchema, ModelSchema } from "@/lib/definitions";
 import { VehicleModel } from "@/services/backend/models/associations";
 import { NextRequest } from "next/server";
 
@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         model: VehicleModel,
         params,
         request,
-        validationSchema: ModelSchema,
+        validationSchema: ModelObjectSchema,
     });
 }
 

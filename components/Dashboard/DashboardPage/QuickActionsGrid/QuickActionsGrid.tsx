@@ -2,13 +2,18 @@ import { Avatar, Grid, Stack, Typography, Card, CardActionArea, Box, alpha, Card
 import { Fragment } from "react";
 import BoltIcon from '@mui/icons-material/Bolt';
 import useQuickActionsGridController from "./controller";
+import { Permissions } from "../../hooks/useUserPermissions";
 
-export default function QuickActionsGrid() {
+export default function QuickActionsGrid({ permissions }: { permissions: Permissions }) {
 
-    const controller = useQuickActionsGridController();
+    const controller = useQuickActionsGridController(permissions);
+
+    if (!controller.quickActions.length) {
+        return null;
+    }
 
     return (
-        <Fragment>
+        <Grid container spacing={2}>
             <Grid size={12}>
                 <Stack direction="row" spacing={2} alignItems="center" sx={styles.sectionHeader}>
                     <Avatar sx={styles.sectionIconAvatar}>
@@ -51,7 +56,7 @@ export default function QuickActionsGrid() {
                     </Grid>
                 );
             })}
-        </Fragment>
+        </Grid>
     )
 }
 

@@ -1,5 +1,5 @@
 import { ClientObjectSchema } from "@/lib/definitions";
-import { Client } from "@/services/backend/models/associations";
+import { Client, Vehicle } from "@/services/backend/models/associations";
 import { NextRequest } from "next/server";
 import createModel from "@/lib/apiUtils/model/createModel";
 import getModels from "@/lib/apiUtils/model/getModels";
@@ -17,7 +17,19 @@ export async function POST(request: NextRequest) {
 
 // Obtener clientes
 export async function GET() {
-    return await getModels(Client);
+    return await getModels(Client, {
+        include: [
+            { model: Vehicle, as: 'Vehicles' }
+        ]
+    }, async (client) => {
+        const response = client.map((client) => {
+            return {
+                ...client.toJSON(),
+                vehicles: client.Vehicles.map((vehicle) => vehicle.license_plate)
+            }
+        });
+        return response;
+    });
 }
 
 // Eliminar clientes

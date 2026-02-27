@@ -1,10 +1,10 @@
 import { ModuleFormGridData } from "@/types/datagrid/datagrid";
 import PictureCell from "../ModuleDataGrid/PictureCell";
 import { AccountSchema } from "@/lib/definitions";
-import { stepThreeDataCharge } from "../Service/config/ServiceModule";
+import { stepThreeDataCharge } from "../Service/config_/ServiceModule";
 import { Fragment } from "react";
 import getDollarRate from "@/lib/dollar";
-import { AccountFormData } from "../Account/config";
+import AccountFormData from "../Account/config";
 
 const dollarRate = await getDollarRate();
 
@@ -163,7 +163,7 @@ export const stockDetailsStepsData = [
                             createFillField: 'name',
                             columns: {
                                 
-                                data: AccountFormData.data
+                                data: AccountFormData.columns
                             }
                         }
                     }
@@ -252,7 +252,7 @@ const StockDetailsSettings: ModuleFormGridData = {
             hiddenAction: false
         },
         toolbar: {
-            show: ['quickFilter', 'columns', 'export', 'export', 'filter', 'density', 'add', 'delete']
+            show: ['quickFilter', 'export', 'export', 'filter', 'create']
         }
     }
 }

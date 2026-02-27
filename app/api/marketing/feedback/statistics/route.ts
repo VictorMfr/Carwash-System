@@ -1,48 +1,69 @@
+import db from "@/services/backend/db";
+import { Client, Feedback } from "@/services/backend/models/associations";
 import { NextResponse } from "next/server";
-import { Feedback, Client, Category, OpinionType } from "@/services/backend/models/associations";
-
-type PieEntry = { id: number; value: number; label: string };
+import { col, fn, literal } from "sequelize";
 
 export async function GET() {
     try {
-        const feedbacks = await Feedback.findAll({
-            include: [
-                { model: Client, as: 'Client', attributes: ['id', 'name', 'lastname'] },
-                { model: Category, as: 'Category', attributes: ['id', 'name'] },
-                { model: OpinionType, as: 'OpinionType', attributes: ['id', 'name'] },
+        /*
+            Tipos de graficos:
+            - Numero de feedbacks por tipo de opinion
+            - Numero de feedbacks por categoria
+            - Numero de feedbacks por cliente
+            - Numero de feedbacks por mes
+        */
+
+        // Numero de feedbacks por tipo de opinion (PieChart)
+        const feedbacksByOpinionType = await Feedback.findAndCountAll({
+            attributes: ['opinionType'],
+            group: ['opinionType'],
+        });
+
+        const pieChartData = feedbacksByOpinionType.count.map((item, index) => ({
+            id: index,
+            value: item.count,
+            label: item.opinionType,
+        }));
+
+        // Numero de feedbacks por categoria (PieChart)
+        const feedbacksByCategory = await Feedback.findAndCountAll({
+            attributes: ['category'],
+            group: ['category'],
+        });
+
+        const pieChartDataCategory = feedbacksByCategory.count.map((item, index) => ({
+            id: index,
+            value: item.count,
+            label: item.category,
+        }));
+
+
+        // Numero de feedbacks por cliente (PieChart)
+        const feedbacksByClient = await Feedback.findAll({
+            include: [{ model: Client, as: "Client", attributes: [] }],
+            attributes: [
+                [col("Client.id"), "clientId"],
+                [fn("CONCAT", col("Client.name"), literal("' '"), col("Client.lastname")), "clientName"],
+                [fn("COUNT", col("Feedback.id")), "total"],
             ],
+            group: ["Client.id", "Client.name", "Client.lastname"],
+            order: [[fn("COUNT", col("Feedback.id")), "DESC"]],
         });
 
-        const byOpinion: Record<string, number> = {};
-        const byCategory: Record<string, number> = {};
-        const byClient: Record<string, number> = {};
+        const pieChartDataClient = feedbacksByClient.map((item: any, index) => ({
+            id: index,
+            value: item.toJSON().total,
+            label: item.toJSON().clientName,
+        }));
 
-        feedbacks.forEach((fb: any) => {
-            const opinion = fb?.OpinionType?.name ?? 'Sin tipo';
-            const category = fb?.Category?.name ?? 'Sin categoría';
-            const clientName = `${fb?.Client?.name ?? 'N/A'} ${fb?.Client?.lastname ?? ''}`.trim();
-
-            byOpinion[opinion] = (byOpinion[opinion] ?? 0) + 1;
-            byCategory[category] = (byCategory[category] ?? 0) + 1;
-            byClient[clientName] = (byClient[clientName] ?? 0) + 1;
-        });
-
-        const toPie = (map: Record<string, number>, limit?: number): PieEntry[] => {
-            const entries = Object.entries(map)
-                .sort((a, b) => b[1] - a[1]);
-            const limited = typeof limit === 'number' ? entries.slice(0, limit) : entries;
-            return limited.map(([label, value], idx) => ({ id: idx, label, value }));
+        const response = {
+            feedbacksByOpinionType: [{ data: pieChartData }],
+            feedbacksByCategory: [{ data: pieChartDataCategory }],
+            feedbacksByClient: [{ data: pieChartDataClient }],
         };
 
-        const feedbacksByOpinionType = toPie(byOpinion);
-        const feedbacksByCategory = toPie(byCategory);
-        const feedbacksByClient = toPie(byClient, 20);
+        return NextResponse.json(response);
 
-        return NextResponse.json({
-            feedbacksByOpinionType,
-            feedbacksByCategory,
-            feedbacksByClient,
-        });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: 'Error obteniendo estadísticas de feedback' }, { status: 500 });

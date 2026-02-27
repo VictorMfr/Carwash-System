@@ -2,7 +2,6 @@ import { Dialog } from "@mui/material";
 import useModalController from "./controller";
 import Header from "./Header/Header";
 import Content from "./Content/Content";
-import Actions from "./Actions/Actions";
 
 export default function Modal() {
 
@@ -14,9 +13,8 @@ export default function Modal() {
             onClose={controller.closeModalHandler}
             {...controller.modalConfig}
         >
-            <Header/>
+            <Header />
             <Content/>
-            <Actions/>
         </Dialog>
     )
 }

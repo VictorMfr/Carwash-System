@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@mui/material";
 import { createContext, Dispatch, SetStateAction, useContext, useState } from "react";
 
 export interface DashboardContextType {
@@ -5,6 +6,7 @@ export interface DashboardContextType {
     setIsClosing: Dispatch<SetStateAction<boolean>>;
     mobileOpen: boolean;
     setMobileOpen: Dispatch<SetStateAction<boolean>>;
+    isMobile: boolean;
 }
 
 export const DashboardContext = createContext<DashboardContextType>({
@@ -12,6 +14,7 @@ export const DashboardContext = createContext<DashboardContextType>({
     setIsClosing: () => { },
     mobileOpen: false,
     setMobileOpen: () => { },
+    isMobile: false,
 });
 
 export const useDashboardContext = () => {
@@ -21,12 +24,14 @@ export const useDashboardContext = () => {
 export const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
     const [isClosing, setIsClosing] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 600px)');
 
     const value = {
         isClosing,
         setIsClosing,
         mobileOpen,
         setMobileOpen,
+        isMobile,
     };
 
     return (

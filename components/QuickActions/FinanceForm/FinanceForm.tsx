@@ -1,7 +1,7 @@
 'use client';
 
 import ModuleForm from "@/components/ModuleForm";
-import FinanceModule from "@/components/Finance/config/FinanceModule";
+import FinanceModule from "@/components/Finance/config_/FinanceModule";
 import useFormDataController, { FormInput } from "@/components/ModuleForm/FormDataController";
 import { FormData } from "@/types/form/form";
 import { useState } from "react";

@@ -1,5 +1,5 @@
 import { IconButton, Tooltip } from "@mui/material";
-import useDeleteActionController from "./controller";
+import useDeleteActionController from "./controller/controller";
 import { Delete } from "@mui/icons-material";
 import { GridRenderCellParams } from "@mui/x-data-grid";
 

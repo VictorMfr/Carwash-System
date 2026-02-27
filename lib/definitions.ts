@@ -16,12 +16,13 @@ export const LoginSchema = z.object({
 
 // User create schema
 export const UserObjectCreateSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido'),
-  lastname: z.string().min(1, 'El apellido es requerido'),
-  phone: z.string().min(1, 'El teléfono es requerido'),
-  address: z.string().min(1, 'La dirección es requerida'),
-  email: z.string().min(1, 'El email es requerido').email('El email no es válido'),
-  password: z.string().min(1, 'La contraseña es requerida')
+  name: z.string('El nombre es requerido').min(1, 'El nombre es requerido'),
+  lastname: z.string('El apellido es requerido').min(1, 'El apellido es requerido'),
+  phone: z.string('El teléfono es requerido').min(1, 'El teléfono es requerido'),
+  address: z.string('La dirección es requerida').min(1, 'La dirección es requerida'),
+  email: z.string('El email es requerido').email('El email no es válido').min(1, 'El email es requerido'),
+  password: z.string('La contraseña es requerida').min(1, 'La contraseña es requerida'),
+  role: z.string('El rol es requerido').min(1, 'El rol es requerido')
 });
 
 // User update schema (password no requerido)
@@ -31,6 +32,7 @@ export const UserObjectUpdateSchema = z.object({
   phone: z.string().min(1, 'El teléfono es requerido'),
   address: z.string().min(1, 'La dirección es requerida'),
   email: z.string().min(1, 'El email es requerido').email('El email no es válido'),
+  role: z.string().min(1, 'El rol es requerido')
 });
 
 // Assign roles schema
@@ -40,7 +42,7 @@ export const AssignRolesSchema = z.object({
 
 // Role schema
 export const RoleObjectSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido'),
+  description: z.string().min(1, 'La descripción es requerida').optional(),
 });
 
 
@@ -52,6 +54,10 @@ export const RoleObjectSchema = z.object({
 // Stock create schema
 export const StockObjectSchema = z.object({
   product: z.object(undefined, 'Debe seleccionar un producto'),
+  minimum_quantity: z.number('Debe seleccionar una cantidad mínima').positive('Debe ser positivo'),
+});
+
+export const StockObjectUpdateSchema = z.object({
   minimum_quantity: z.number('Debe seleccionar una cantidad mínima').positive('Debe ser positivo'),
 });
 
@@ -92,6 +98,7 @@ const FormInputsArraySchema = z.array(FormInputSchema).transform(arr =>
     return acc;
   }, {} as Record<string, string | number | boolean | Record<string, any> | any[] | null>)
 );
+
 
 // FINANCE SCHEMA
 export const FinanceObjectSchema = z.object({
@@ -206,21 +213,9 @@ export const FeedbackObjectSchema = z.object({
   client: z.object({
     id: z.number(),
   }, 'El cliente es requerido'),
-  category: z.object({
-    id: z.number(),
-  }, 'La categoría es requerida'),
-  opinionType: z.object({
-    id: z.number(),
-  }, 'El tipo de opinión es requerido'),
   description: z.string().min(1, 'La descripción es requerida'),
-});
-
-export const CategoryObjectSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido'),
-});
-
-export const OpinionTypeObjectSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido'),
+  category: z.string().min(1, 'La categoría es requerida'),
+  opinionType: z.string().min(1, 'El tipo de opinión es requerido'),
 });
 
 
@@ -235,8 +230,14 @@ export const StockDetailsObjectSchema = z.object({
   quantity: z.number('La cantidad es requerida'),
   entry_date: z.date({ message: 'La fecha es requerida' }),
   picture: z.string().min(1, 'La imagen es requerida'),
-  brand: z.object(undefined, 'La marca es requerida'),
-  state: z.object(undefined, 'El estado es requerido'),
+  brand: AutocompleteObjectSchema.refine(
+    (v) => Boolean(v?.id || v?.value || v?.name),
+    { message: 'La marca es requerida' }
+  ),
+  state: AutocompleteObjectSchema.refine(
+    (v) => Boolean(v?.id || v?.value || v?.name),
+    { message: 'El estado es requerido' }
+  ),
   dollar_rate: z.number().optional(),
   bol_charge: z.number().optional(),
   dollar_charge: z.number().optional(),
@@ -278,5 +279,3 @@ export const ServiceVehicleSchemaStepFour = FormInputsArraySchema.pipe(ServiceVe
 export const RecipeSchema = FormInputsArraySchema.pipe(RecipeObjectSchema);
 export const FailureSchema = FormInputsArraySchema.pipe(FailureObjectSchema);
 export const FeedbackSchema = FormInputsArraySchema.pipe(FeedbackObjectSchema);
-export const CategorySchema = FormInputsArraySchema.pipe(CategoryObjectSchema);
-export const OpinionTypeSchema = FormInputsArraySchema.pipe(OpinionTypeObjectSchema);

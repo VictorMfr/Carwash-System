@@ -1,4 +1,4 @@
-import { VehicleWithUserSchema } from "@/lib/definitions";
+import { VehicleWithUserObjectSchema, VehicleWithUserSchema } from "@/lib/definitions";
 import { Vehicle } from "@/services/backend/models/associations";
 import { NextRequest } from "next/server";
 import getModel from "@/lib/apiUtils/model/getModel";
@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         model: Vehicle,
         params,
         request,
-        validationSchema: VehicleWithUserSchema,
+        validationSchema: VehicleWithUserObjectSchema,
     });
 }
 

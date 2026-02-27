@@ -16,10 +16,15 @@ export default function useFetchDollarRate() {
     const [loading, setLoading] = useState(false);
 
     const fetchDollarRate = async () => {
-        setLoading(true);
-        const rate = await getDollarRate();
-        setDollarRate(rate);
-        setLoading(false);
+        try {
+            setLoading(true);
+            const rate = await getDollarRate();
+            setDollarRate(rate);
+        } catch {
+            console.log('Error consultando a la API, compruebe la conexion a internet')
+        } finally {
+            setLoading(false);
+        }
     }
 
     useEffect(() => {

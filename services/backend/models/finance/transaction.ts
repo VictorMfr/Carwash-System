@@ -9,6 +9,9 @@ import {
     BelongsToGetAssociationMixin,
     BelongsToSetAssociationMixin,
     BelongsToCreateAssociationMixin,
+    HasOneGetAssociationMixin,
+    HasOneSetAssociationMixin,
+    HasOneCreateAssociationMixin,
 } from 'sequelize';
 import db from '../../db';
 import Account from './account';

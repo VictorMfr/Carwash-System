@@ -4,6 +4,10 @@ import withUIDisplayControls from "@/HOC/withUIDisplayControls";
 import { Fragment } from "react";
 import Modal from "./Modal/Modal";
 
+/**
+ * Componente que renderiza la grilla.
+ * @returns Componente de la grilla.
+ */
 const ModuleDataGrid = () => {
 
     const controller = useModuleDataGridController();
@@ -16,7 +20,7 @@ const ModuleDataGrid = () => {
                 loading={controller.loading}
                 slots={controller.slots}
                 showToolbar={true}
-                checkboxSelection={controller.checkboxSelection}
+                onRowSelectionModelChange={controller.handleRowSelectionModelChange}
                 {...controller.customDataGridProps}
             />
             <Modal/>

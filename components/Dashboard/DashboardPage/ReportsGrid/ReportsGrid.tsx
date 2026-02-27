@@ -2,14 +2,18 @@ import { Fragment } from "react";
 import { Grid, Stack, Typography, Avatar, Card, CardActionArea, Box, alpha, CardContent, Link, Theme, SxProps } from "@mui/material";
 import BarChart from '@mui/icons-material/BarChart';
 import useReportsGridController from "./controller";
+import { Permissions } from "../../hooks/useUserPermissions";
 
+export default function ReportsGrid({ permissions }: { permissions: Permissions }) {
 
-export default function ReportsGrid() {
+    const controller = useReportsGridController(permissions);
 
-    const controller = useReportsGridController();
+    if (!controller.reports.length) {
+        return null;
+    }
 
     return (
-        <Fragment>
+        <Grid container spacing={2}>
             <Grid size={12}>
                 <Stack direction="row" spacing={2} alignItems="center" sx={styles.sectionHeader}>
                     <Avatar sx={styles.sectionIconAvatar}>
@@ -52,7 +56,7 @@ export default function ReportsGrid() {
                     </Grid>
                 );
             })}
-        </Fragment>
+        </Grid>
     )
 }
 

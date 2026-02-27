@@ -1,14 +1,18 @@
-import { useModuleDataGridContext } from "@/components/v2/ModuleDataGrid/context";
+import { useModuleDataGridContext } from "../../../context";
 
-export default function useCreateController() {
+    export default function useCreateController() {
 
-    const { settings } = useModuleDataGridContext();
+    const datagridCtx = useModuleDataGridContext();
 
-    const showAddModal = () => {
-        
+    const openModalHandler = () => {
+        datagridCtx.setModalState({ 
+            data: undefined,
+            open: true, 
+            type: 'add' 
+        });
     }
 
     return {
-        create: true,
+        openModalHandler
     }
 }

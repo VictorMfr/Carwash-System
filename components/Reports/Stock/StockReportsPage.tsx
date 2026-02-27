@@ -210,6 +210,160 @@ interface StockStatistics {
     entryData: Array<{ month: string; entry: number }>;
 }
 
+const EMPTY_STOCK_STATISTICS: StockStatistics = {
+    productsByBrand: [],
+    productsByState: [],
+    costData: [],
+    entryData: []
+};
+
+const asNumber = (value: unknown, fallback = 0): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return fallback;
+};
+
+const asString = (value: unknown, fallback = ''): string => {
+    return typeof value === 'string' ? value : fallback;
+};
+
+const extractArray = (value: unknown, possibleKeys: string[]): unknown[] => {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>;
+        for (const key of possibleKeys) {
+            if (Array.isArray(record[key])) {
+                return record[key] as unknown[];
+            }
+        }
+    }
+    return [];
+};
+
+const normalizeStockRow = (row: unknown, index: number): StockData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    return {
+        id: asNumber(item.id, index + 1),
+        product: asString(item.product, 'N/A'),
+        unit: asString(item.unit, 'N/A'),
+        total_quantity: asNumber(item.total_quantity, 0),
+        minimum_quantity: asNumber(item.minimum_quantity, 0),
+        StockDetails: []
+    };
+};
+
+const normalizeStockDetailRow = (row: unknown, index: number): StockDetailData => {
+    const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+    const stockRaw = (item.Stock && typeof item.Stock === 'object') ? (item.Stock as Record<string, unknown>) : {};
+    const productRaw = (stockRaw.Product && typeof stockRaw.Product === 'object')
+        ? (stockRaw.Product as Record<string, unknown>)
+        : {};
+
+    return {
+        id: asNumber(item.id, index + 1),
+        quantity: asNumber(item.quantity, 0),
+        price: asNumber(item.price, 0),
+        entry_date: asString(item.entry_date, dayjs().toISOString()),
+        brand: asString(item.brand, 'N/A'),
+        state: asString(item.state, 'N/A'),
+        bol_charge: item.bol_charge == null ? undefined : asNumber(item.bol_charge, 0),
+        dollar_rate: item.dollar_rate == null ? undefined : asNumber(item.dollar_rate, 0),
+        dollar_charge: item.dollar_charge == null ? undefined : asNumber(item.dollar_charge, 0),
+        charge_account: asString(item.charge_account, ''),
+        method: asString(item.method, ''),
+        Stock: {
+            Product: {
+                name: asString(productRaw.name, 'N/A')
+            }
+        }
+    };
+};
+
+const normalizeStatsSeries = (value: unknown): Array<{ id: number; value: number; label: string }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row, index) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            id: asNumber(item.id, index + 1),
+            value: asNumber(item.value, 0),
+            label: asString(item.label, 'N/A')
+        };
+    });
+};
+
+const normalizeCostSeries = (value: unknown): Array<{ month: string; cost: number }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            month: asString(item.month, 'N/A'),
+            cost: asNumber(item.cost, 0)
+        };
+    });
+};
+
+const normalizeEntrySeries = (value: unknown): Array<{ month: string; entry: number }> => {
+    if (!Array.isArray(value)) return [];
+    return value.map((row) => {
+        const item = (row && typeof row === 'object') ? (row as Record<string, unknown>) : {};
+        return {
+            month: asString(item.month, 'N/A'),
+            entry: asNumber(item.entry, 0)
+        };
+    });
+};
+
+const normalizeStocks = (value: unknown): StockData[] => {
+    return extractArray(value, ['stocks', 'data', 'rows', 'results']).map(normalizeStockRow);
+};
+
+const normalizeStockDetails = (value: unknown): StockDetailData[] => {
+    console.log(value);
+    return extractArray(value, ['stockDetails', 'details', 'data', 'rows', 'results']).map(normalizeStockDetailRow);
+};
+
+const normalizeStockStatistics = (value: unknown): StockStatistics => {
+    const statsSource = (value && typeof value === 'object') ? (value as Record<string, unknown>) : {};
+    return {
+        productsByBrand: normalizeStatsSeries(statsSource.productsByBrand),
+        productsByState: normalizeStatsSeries(statsSource.productsByState),
+        costData: normalizeCostSeries(statsSource.costData),
+        entryData: normalizeEntrySeries(statsSource.entryData)
+    };
+};
+
+class ReportPdfErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error) {
+        console.error('Error rendering Stock report PDF:', error);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+                    <Alert severity="error">
+                        Error al generar el reporte PDF. Verifica los datos de inventario e intenta nuevamente.
+                    </Alert>
+                </Box>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
 // Export pages so they can be composed in a single PDF
 export const StockReportPages = ({ stocks, stockDetails, statistics }: { stocks: StockData[], stockDetails: StockDetailData[], statistics: StockStatistics }) => {
     const totalProducts = stocks.length;
@@ -217,15 +371,15 @@ export const StockReportPages = ({ stocks, stockDetails, statistics }: { stocks:
     const lowStockItems = stocks.filter(stock => stock.total_quantity <= stock.minimum_quantity);
     
     // Calcular valor total del inventario
-    const totalValue = stockDetails.reduce((sum, detail) => sum + (detail.price * detail.quantity), 0);
+    const totalValue = stockDetails.reduce((sum, detail) => sum + (detail.bol_charge as any * detail.quantity), 0);
     
     // Calcular precio promedio
     const avgPrice = stockDetails.length > 0 
-        ? stockDetails.reduce((sum, detail) => sum + detail.price, 0) / stockDetails.length 
+        ? stockDetails.reduce((sum, detail) => sum + (detail.bol_charge as any), 0) / stockDetails.length 
         : 0;
     
     // Precio más alto y más bajo
-    const prices = stockDetails.map(d => d.price);
+    const prices = stockDetails.map(d => d.bol_charge as any);
     const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
     
@@ -255,10 +409,6 @@ export const StockReportPages = ({ stocks, stockDetails, statistics }: { stocks:
                         <View style={styles.summaryRow}>
                             <Text style={styles.summaryLabel}>Total de productos en inventario:</Text>
                             <Text style={styles.summaryValue}>{totalProducts}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Cantidad total de unidades:</Text>
-                            <Text style={styles.summaryValue}>{totalQuantity.toLocaleString()}</Text>
                         </View>
                         <View style={styles.summaryRow}>
                             <Text style={styles.summaryLabel}>Valor total del inventario:</Text>
@@ -460,12 +610,7 @@ const StockReportDocument = ({ stocks, stockDetails, statistics }: { stocks: Sto
 export default function StockReportsPage() {
     const [stocks, setStocks] = useState<StockData[]>([]);
     const [stockDetails, setStockDetails] = useState<StockDetailData[]>([]);
-    const [statistics, setStatistics] = useState<StockStatistics>({
-        productsByBrand: [],
-        productsByState: [],
-        costData: [],
-        entryData: []
-    });
+    const [statistics, setStatistics] = useState<StockStatistics>(EMPTY_STOCK_STATISTICS);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -495,9 +640,9 @@ export default function StockReportsPage() {
                 const detailsData = await detailsRes.json();
                 const statsData = await statsRes.json();
 
-                setStocks(stocksData);
-                setStockDetails(detailsData);
-                setStatistics(statsData);
+                setStocks(normalizeStocks(stocksData));
+                setStockDetails(normalizeStockDetails(detailsData));
+                setStatistics(normalizeStockStatistics(statsData));
             } catch (err: any) {
                 setError(err.message || 'Error al cargar los datos');
             } finally {
@@ -526,9 +671,11 @@ export default function StockReportsPage() {
 
     return (
         <Box sx={{ width: '100vw', height: '100vh' }}>
-            <PDFViewer height={'100%'} width={'100%'}>
-                <StockReportDocument stocks={stocks} stockDetails={stockDetails} statistics={statistics} />
-            </PDFViewer>
+            <ReportPdfErrorBoundary>
+                <PDFViewer height={'100%'} width={'100%'}>
+                    <StockReportDocument stocks={stocks} stockDetails={stockDetails} statistics={statistics} />
+                </PDFViewer>
+            </ReportPdfErrorBoundary>
         </Box>
     );
 }

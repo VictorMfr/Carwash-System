@@ -1,27 +1,36 @@
-import formVanilla from "@/types/v2/form/formVariants/formVanilla/formVanilla";
 import { Autocomplete } from "@mui/material";
 import useAutocompleteInputController from "./controller/controller";
 import withUIDisplayControls from "@/HOC/withUIDisplayControls";
+import { Fragment } from "react";
+import Modal from "./Modal/Modal";
 
-const AutocompleteInput = ({ field }: { field: formVanilla }) => {
 
-    if (!field.autocomplete) return null;
+const AutocompleteInput = () => {
 
-    const controller = useAutocompleteInputController(field);
+    const controller = useAutocompleteInputController();
+
     if (!controller) return null;
 
     return (
-        <Autocomplete
-            {...controller.safeProps}
-            fullWidth
-            value={controller.value}
-            options={controller.data}
-            renderInput={controller.renderInput}
-            loading={controller.loading}
-            onChange={controller.onChange}
-            getOptionLabel={controller.getOptionLabel}
-            {...field.effects}
-        />
+        <Fragment>
+            <Autocomplete
+                {...controller.safeProps}
+                fullWidth
+                value={controller.value}
+                options={controller.data}
+                renderInput={controller.renderInput}
+                loading={controller.loading}
+                onChange={controller.onChange}
+                getOptionLabel={controller.getOptionLabel}
+                filterOptions={controller.filterOptionsHandler}
+                selectOnFocus
+                handleHomeEndKeys
+                clearOnBlur
+                disabled={controller.autocompleteCtx.effects.disabled}
+                {...controller.autocompleteCtx.field.effects}
+            />
+            <Modal/>
+        </Fragment>
     );
 }
 

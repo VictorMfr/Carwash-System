@@ -35,6 +35,10 @@ class VehicleBrand extends Model<InferAttributes<VehicleBrand>, InferCreationAtt
     declare removeVehicle: HasManyRemoveAssociationMixin<Vehicle, number>;
     declare removeVehicles: HasManyRemoveAssociationsMixin<Vehicle, number>;
     declare createVehicle: HasManyCreateAssociationMixin<Vehicle>;
+
+    declare created_at: CreationOptional<Date>;
+    declare updated_at: CreationOptional<Date>;
+    declare deleted_at: CreationOptional<Date | null>;
 }
 
 export type VehicleBrandCreationAttributes = InferCreationAttributes<VehicleBrand>;
@@ -49,6 +53,20 @@ VehicleBrand.init({
     name: {
         type: DataTypes.STRING,
         allowNull: false,
+    },
+    created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+    },
+    deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
     },
 }, {
     sequelize: db,

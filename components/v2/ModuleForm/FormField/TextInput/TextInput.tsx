@@ -14,6 +14,8 @@ export default function TextInput({ field }: { field: formVanilla }) {
             fullWidth
             {...field.TextFieldProps}
             {...controller.effects}
+            helperText={controller.state.error}
+            error={!!controller.state.error}
         />
     );
 }

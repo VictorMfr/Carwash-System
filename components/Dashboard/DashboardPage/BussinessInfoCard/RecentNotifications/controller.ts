@@ -17,9 +17,13 @@ export default function useRecentNotificationsController() {
                 if (svcRes.ok) {
                     const services = await svcRes.json();
                     (services || []).slice(0, 3).forEach((s: any) => {
+                        const recipeLabel =
+                            typeof s.recipeName === "string"
+                                ? s.recipeName
+                                : s.recipeName?.name ?? "";
                         items.push({
                             id: `svc-${s.id}`,
-                            title: `Servicio ${s.recipeName ?? ''} - ${s.status ?? ''}`.trim(),
+                            title: `Servicio ${recipeLabel} - ${s.status ?? ''}`.trim(),
                             subtitle: `${dayjs(s.date).format('DD/MM/YYYY')} • ${s.client ?? ''}`.trim()
                         });
                     });

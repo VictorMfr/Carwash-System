@@ -1,12 +1,13 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from "@mui/material";
 import ModuleAutoComplete from "../ModuleAutocomplete/ModuleAutoComplete";
 import { AutocompleteModule } from "@/types/autocomplete/autocomplete";
 import withUIDisplayControls from "@/HOC/withUIDisplayControls";
-import { useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import { handleApiError } from "@/lib/error";
 import api from "@/lib/axios";
 import { GridRenderCellParams } from "@mui/x-data-grid";
+import { ModuleDataGridContext } from "@/components/v2/ModuleDataGrid/context";
 
 const moduleSettings: AutocompleteModule = {
     url: '/api/stock/state',
@@ -21,27 +22,43 @@ const moduleSettings: AutocompleteModule = {
     loadingType: 'screen',
 }
 
-const StateModal = ({
-    setActionModal,
-    actionModal,
-    params,
-    setData
-}: {
-    setActionModal: (actionModal: { open: boolean, action: any, data: any }) => void,
-    actionModal: { open: boolean, action: any, data: any }
-    params: GridRenderCellParams
-    setData: (data: any) => void
-}) => {
+type LegacyProps = {
+    setActionModal: (actionModal: { open: boolean, action: any, data: any }) => void;
+    actionModal: { open: boolean, action: any, data: any };
+    params: GridRenderCellParams;
+    setData: (data: any) => void;
+};
 
+type V2Props = {
+    handleClose: () => void;
+    params: GridRenderCellParams;
+};
+
+type StateModalProps = LegacyProps | V2Props;
+
+const isV2Props = (props: StateModalProps): props is V2Props => {
+    return 'handleClose' in props;
+};
+
+const StateModal = (props: StateModalProps) => {
+
+    const v2Mode = isV2Props(props);
+    const params = props.params;
     const [value, setValue] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const uiContext = useUIDisplayControls();
+    const datagridCtx = useContext(ModuleDataGridContext);
 
     const handleClose = () => {
-        setActionModal({ open: false, action: null, data: null });
+        if (v2Mode) {
+            props.handleClose();
+            return;
+        }
+        props.setActionModal({ open: false, action: null, data: null });
     }
 
     const handleSubmit = async () => {
+        if (!value) return;
         try {
             setLoading(true);
             const formData = new FormData();
@@ -53,23 +70,49 @@ const StateModal = ({
             });
 
             uiContext.setSnackbar({ open: true, message: 'Estado del producto cambiado correctamente', severity: 'success' });
-            setData((prev: any) => prev.map((item: any) => item.id === params.row.id ? {
-                ...item,
-                stateId: value.id,
-                state: value.name
-            } : item));
+            if (v2Mode) {
+                await datagridCtx.refetch();
+            } else {
+                props.setData((prev: any) => prev.map((item: any) => item.id === params.row.id ? {
+                    ...item,
+                    stateId: value.id,
+                    state: value.name
+                } : item));
+            }
             handleClose();
         } catch (error) {
             handleApiError(error, uiContext);
         } finally {
             setLoading(false);
         }
-        setActionModal({ open: false, action: 'add', data: value });
+        if (!v2Mode) {
+            props.setActionModal({ open: false, action: 'add', data: value });
+        }
+    }
+
+    if (v2Mode) {
+        return (
+            <Stack spacing={2}>
+                <ModuleAutoComplete autoCompleteSettings={moduleSettings} onChange={setValue} />
+                <DialogActions sx={{ px: 0 }}>
+                    <Button onClick={handleClose} disabled={loading}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleSubmit}
+                        variant="contained"
+                        disabled={loading || !value}
+                    >
+                        Cambiar
+                    </Button>
+                </DialogActions>
+            </Stack>
+        );
     }
 
     return (
         <Dialog
-            open={actionModal.open}
+            open={props.actionModal.open}
             onClose={handleClose}
         >
             <DialogTitle>Estado del producto</DialogTitle>
@@ -79,9 +122,7 @@ const StateModal = ({
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button
-                    onClick={handleClose}
-                >
+                <Button onClick={handleClose}>
                     Cancelar
                 </Button>
                 <Button

@@ -9,7 +9,7 @@ import withUIDisplayControls from "@/HOC/withUIDisplayControls";
 import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import { StockSchema } from "@/lib/definitions";
 import StockModule from "../Stock/config/StockModule";
-import { AccountFormData } from "../Account/config";
+import { AccountDatagrid } from "../Account/config/accountDatagrid/datagrid";
 import getDollarRate from "@/lib/dollar";
 
 const dollarRate = await getDollarRate();
@@ -234,10 +234,7 @@ const cartField: FormDataField = {
                                                             },
                                                             formData: {
                                                                 createFillField: 'name',
-                                                                columns: {
-
-                                                                    data: AccountFormData.data
-                                                                }
+                                                                columns: AccountDatagrid.columns
                                                             }
                                                         }
                                                     },

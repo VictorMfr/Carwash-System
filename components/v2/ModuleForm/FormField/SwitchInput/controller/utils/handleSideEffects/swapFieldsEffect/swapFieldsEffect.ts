@@ -3,6 +3,7 @@ import { ModuleFormContextType } from "../../../../../../context";
 import getFormFields from "@/components/v2/ModuleForm/FormField/utils/getFormFields";
 import form from "@/types/v2/form/form";
 import getInitialFormEffectsState from "../../../../../../utils/getInitialFormEffectsState";
+import getInitialStateValue from "@/components/v2/ModuleForm/utils/getInitialStateValue";
 
 
 export default function swapFieldsEffect(field: formVanilla, moduleFormContext: ModuleFormContextType) {
@@ -71,7 +72,11 @@ export default function swapFieldsEffect(field: formVanilla, moduleFormContext: 
             const fieldTarget = field.switch?.swapIds?.find(f => f.id == state.field);
             if (!fieldTarget) return state;
 
-            return fieldTarget.value as any;
+            return {
+                field: fieldTarget.value.field,
+                value: getInitialStateValue(fieldTarget.value as formVanilla),
+                error: ''
+            }
         });
 
         return newFormState;

@@ -15,5 +15,5 @@ export default interface input {
 	date?: Date;
 	picture?: Picture;
 	cart?: Cart;
-	custom?: React.ComponentType<{ dataField: formVanilla }>;
+	custom?: React.ComponentType<{ field: formVanilla }>;
 }

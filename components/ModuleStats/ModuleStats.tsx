@@ -83,14 +83,6 @@ export default function ModuleStats({ moduleStats }: { moduleStats: ModuleStatsD
 
     return (
         <Stack sx={{ height: '100%' }} spacing={2}>
-
-            <Stack direction="row" alignItems="center" spacing={2}>
-                {moduleStats.icon && <moduleStats.icon color="action" />}
-                <Stack>
-                    {moduleStats.label && <Typography variant="h5">{moduleStats.label}</Typography>}
-                    {moduleStats.description && <Typography variant="body1">{moduleStats.description}</Typography>}
-                </Stack>
-            </Stack>
             <Card variant="outlined" sx={{ height: '100%' }}>
                 <Tabs value={tab} onChange={(event, newValue) => setTab(newValue)}>
                     {moduleStats.tabs.map((tab) => (
@@ -135,16 +127,13 @@ export default function ModuleStats({ moduleStats }: { moduleStats: ModuleStatsD
                             <Fragment key={graph.id}>
                                 {loading && moduleStats.loadingType === 'skeleton' ? <Skeleton variant="rounded" sx={{ width: { xs: '100%', md: '50%' }, height: '100%' }} /> : (
                                     <Grid key={graph.id} size={{ xs: 12, md: moduleStats.size === 'small' ? 12 : 6 }}>
-                                        <Card variant="outlined" sx={{ height: 348 }}>
-                                            <CardContent>
-                                                <Typography variant="body2" gutterBottom>{graph.label}</Typography>
-                                            </CardContent>
+                                        
                                             <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                 {loading ? (
                                                     moduleStats.loadingType === 'spinner' ? <CircularProgress /> : <Skeleton variant="rectangular" height="100%" width="100%" />
                                                 ) : renderGraph(graph, data, isSmall)}
                                             </CardContent>
-                                        </Card>
+                                        
                                     </Grid>
                                 )}
                             </Fragment>

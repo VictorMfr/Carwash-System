@@ -1,15 +1,16 @@
 'use client';
 
-import ModuleStats from "../ModuleStats/ModuleStats";
+import ModuleStats from "../v2/ModuleStats";
 import { Stack } from "@mui/material";
 import ModuleDataGrid from "../ModuleDataGrid";
-import MarketingStatsModule from "./config/MarketingStatsModule";
 import ClientsGridModule from "./config/ClientsGridModule";
+import { marketingStats } from "./config/stats/marketingStats";
+import { stats } from "@/types/v2/stats/stats";
 
 export default function MarketingPage() {
     return (
         <Stack spacing={2}>
-            <ModuleStats moduleStats={MarketingStatsModule} />
+            <ModuleStats settings={marketingStats} />
             <ModuleDataGrid moduleSettings={ClientsGridModule} />
         </Stack>
     )

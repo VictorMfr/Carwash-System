@@ -1,5 +1,5 @@
 import formVanilla from "@/types/v2/form/formVariants/formVanilla/formVanilla";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from "@mui/material";
 import useGetFieldController from "../utils/useGetFieldController";
 
 export default function SelectInput({ field }: { field: formVanilla }) {
@@ -8,7 +8,7 @@ export default function SelectInput({ field }: { field: formVanilla }) {
     const controller = useGetFieldController(field);
 
     return (
-        <FormControl fullWidth>
+        <FormControl fullWidth error={!!controller.state.error}>
             <InputLabel id={field.id} htmlFor={field.id}>{field.headerName}</InputLabel>
             <Select
                 labelId={field.id}
@@ -22,6 +22,7 @@ export default function SelectInput({ field }: { field: formVanilla }) {
                     <MenuItem key={option} value={option}>{option}</MenuItem>
                 ))}
             </Select>
+            <FormHelperText error={!!controller.state.error}>{controller.state.error}</FormHelperText>
         </FormControl>
     )
 }

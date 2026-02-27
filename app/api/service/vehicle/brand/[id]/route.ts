@@ -1,4 +1,4 @@
-import { VechileBrandSchema } from "@/lib/definitions";
+import { VechileBrandObjectSchema, VechileBrandSchema } from "@/lib/definitions";
 import { VehicleBrand } from "@/services/backend/models/associations";
 import { NextRequest } from "next/server";
 import getModel from "@/lib/apiUtils/model/getModel";
@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         model: VehicleBrand,
         params,
         request,
-        validationSchema: VechileBrandSchema,
+        validationSchema: VechileBrandObjectSchema,
     });
 }
 

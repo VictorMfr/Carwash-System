@@ -1,6 +1,5 @@
 // Associations
 import User from './auth/user';
-import Role from './auth/role';
 import Stock from './stock/stock';
 import Product from './stock/product';
 import StockBrand from './stock/brand';
@@ -21,23 +20,8 @@ import ServiceOperator from './service/serviceOperator';
 import StockDetails from './stock/stockDetails';
 import Failure from './stock/failure';
 import Feedback from './service/client/feedback/feedback';
-import Category from './service/client/feedback/category';
-import OpinionType from './service/client/feedback/opinionType';
 
 // services/backend/models/associations.ts
-User.belongsToMany(Role, {
-    through: 'user_roles',
-    as: 'Roles',
-    foreignKey: 'userId',
-    otherKey: 'roleId',
-});
-Role.belongsToMany(User, {
-    through: 'user_roles',
-    as: 'Users',
-    foreignKey: 'roleId',
-    otherKey: 'userId',
-});
-
 User.hasOne(Stock);
 Stock.belongsTo(User);
 
@@ -122,20 +106,14 @@ Service.belongsTo(Vehicle);
 VehicleModel.hasMany(Vehicle, { as: 'Vehicles', foreignKey: 'modelId' });
 Vehicle.belongsTo(VehicleModel, { as: 'VehicleModel', foreignKey: 'modelId' });
 
-VehicleBrand.hasMany(Vehicle, { as: 'Vehicles', foreignKey: 'vehicleBrandId' });
-Vehicle.belongsTo(VehicleBrand, { as: 'VehicleBrand', foreignKey: 'vehicleBrandId' });
+VehicleBrand.hasMany(Vehicle, { as: 'Vehicles', foreignKey: 'brandId' });
+Vehicle.belongsTo(VehicleBrand, { as: 'VehicleBrand', foreignKey: 'brandId' });
 
 Client.hasMany(Vehicle, { as: 'Vehicles', foreignKey: 'clientId' });
 Vehicle.belongsTo(Client, { as: 'Client', foreignKey: 'clientId' });
 
 Client.hasMany(Feedback, { as: 'Feedbacks', foreignKey: 'clientId' });
 Feedback.belongsTo(Client, { as: 'Client', foreignKey: 'clientId' });
-
-Category.hasMany(Feedback, { as: 'Feedbacks', foreignKey: 'categoryId' });
-Feedback.belongsTo(Category, { as: 'Category', foreignKey: 'categoryId' });
-
-OpinionType.hasMany(Feedback, { as: 'Feedbacks', foreignKey: 'opinionTypeId' });
-Feedback.belongsTo(OpinionType, { as: 'OpinionType', foreignKey: 'opinionTypeId' });
 
 // Finance module
 User.hasMany(Transaction, { as: 'Transactions', foreignKey: 'userId' });
@@ -151,10 +129,12 @@ Transaction.belongsTo(Method, { as: 'Method', foreignKey: 'methodId' });
 Transaction.hasOne(StockDetails, { as: 'StockDetail', foreignKey: 'transactionId' });
 StockDetails.belongsTo(Transaction, { as: 'Transaction', foreignKey: 'transactionId' });
 
+// Un servicio solo tiene una transaccion
+Transaction.hasOne(Service, { as: 'Service', foreignKey: 'transactionId' });
+Service.belongsTo(Transaction, { as: 'Transactions', foreignKey: 'transactionId' });
 
 export {
     User,
-    Role,
     Stock,
     Product,
     StockDetails,
@@ -170,7 +150,5 @@ export {
     Method,
     Client,
     Transaction,
-    Feedback,
-    Category,
-    OpinionType
+    Feedback
 };

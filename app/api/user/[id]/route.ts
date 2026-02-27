@@ -1,26 +1,45 @@
 import { User } from "@/services/backend/models/associations";
-import { NextRequest } from "next/server";
-import { UserObjectUpdateSchema } from "@/lib/definitions";
-import deleteModel from "@/lib/apiUtils/model/deleteModel";
-import getModel from "@/lib/apiUtils/model/getModel";
-import updateModel from "@/lib/apiUtils/model/updateModel";
+import { NextRequest, NextResponse } from "next/server";
+import { handleServerError } from "@/lib/error";
 
 // Obtener usuario por id
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    return await getModel(User, params);
+    try {
+        const { id } = await params;
+        const user = await User.findByPk(id);
+        return NextResponse.json(user);
+    } catch (error) {
+        return handleServerError(error);
+    }
 }
 
 // Actualizar usuario
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    return await updateModel({
-        model: User,
-        params: params,
-        request: request,
-        validationSchema: UserObjectUpdateSchema,
-    });
+    try {
+        const { name, lastname, email, phone, address, role } = await request.json();
+        const { id } = await params;
+        const user = await User.findByPk(id);
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        await user.update({ name, lastname, email, phone, address, role });
+        return NextResponse.json(user);
+    } catch (error) {
+        return handleServerError(error);
+    }
 }
 
 // Eliminar usuario
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    return await deleteModel(User, params);
+    try {
+        const { id } = await params;
+        const user = await User.findByPk(id);
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        await user.destroy();
+        return NextResponse.json(user);
+    } catch (error) {
+        return handleServerError(error);
+    }
 }

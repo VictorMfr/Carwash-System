@@ -1,18 +1,22 @@
 import { GridRenderCellParams } from "@mui/x-data-grid";
 import useActionsController from "./controller";
 import { Fragment } from "react";
-import ActionItem from "./ActionItem/ActionItem";
 import DefaultActions from "./DefaultActions/DefaultActions";
+import ActionItemIndex from "./ActionItem";
 
 export default function Actions(params: GridRenderCellParams) {
-    
-    const controller = useActionsController();
-    
+
+    const controller = useActionsController(params);
+
     return (
         <Fragment>
-            <DefaultActions params={params}/>
+            <DefaultActions params={params} />
             {controller.actions?.options.map(action => (
-                <ActionItem key={action.name} action={action} params={params} />
+                <ActionItemIndex
+                    key={action.name}
+                    params={params}
+                    action={action}
+                />
             ))}
         </Fragment>
     );

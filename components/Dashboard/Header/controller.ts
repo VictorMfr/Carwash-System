@@ -2,14 +2,14 @@ import { useDashboardContext } from "../context";
 import { useState } from "react";
 import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import api from "@/lib/axios";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function useHeaderController() {
 
     const [optionsAnchorEl, setOptionsAnchorEl] = useState<null | HTMLElement>(null);
     const isOptionsOpen = Boolean(optionsAnchorEl);
     const uiContext = useUIDisplayControls();
-
+    const router = useRouter();
     const dashboardContext = useDashboardContext();
 
     const handleOpenOptions = (event: React.MouseEvent<HTMLElement>) => {
@@ -31,23 +31,23 @@ export default function useHeaderController() {
     const handleLogout = () => {
         uiContext.setAlert({
             open: true,
-            title: 'Logout',
-            message: 'Are you sure you want to logout?',
+            title: 'Cerrar sesión',
+            message: '¿Estás seguro de querer cerrar sesión?',
             severity: 'warning',
             actions: [
                 {
-                    label: 'Cancel',
+                    label: 'Cancelar',
                     onClick: () => uiContext.setAlert(prev => ({ ...prev, open: false }))
                 },
                 {
-                    label: 'Logout',
+                    label: 'Cerrar sesión',
                     onClick: async () => {
                         try {
                             uiContext.setLoading(true);
                             await api.post('/api/auth/logout');
                         } finally {
                             uiContext.setAlert(prev => ({ ...prev, open: false }));
-                            router.push('/login');
+                            router.replace('/login');
                             uiContext.setLoading(false);
                         }
                     }

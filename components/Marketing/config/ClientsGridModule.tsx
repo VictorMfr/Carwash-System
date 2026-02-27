@@ -26,7 +26,7 @@ const ClientsGridModule: ModuleFormGridData = {
     config: {
         inputConfig: { allowCheckboxSelection: false },
         toolbar: {
-            show: ['quickFilter', 'filter']
+            show: ['quickFilter']
         },
         append: {
             initialState: {

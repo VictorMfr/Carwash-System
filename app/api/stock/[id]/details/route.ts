@@ -23,11 +23,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             const entryDate = dayjs(stockDetail.entry_date).format("DD-MM-YYYY");
             const tx = stockDetail.Transaction;
 
+            const brandObj = stockDetail.Brand
+                ? { id: stockDetail.Brand.id, name: stockDetail.Brand.name }
+                : null;
+            const stateObj = stockDetail.State
+                ? { id: stockDetail.State.id, name: stockDetail.State.name }
+                : null;
+            const accountObj = tx?.Account
+                ? { id: tx.Account.id, name: tx.Account.name }
+                : null;
+            const methodObj = tx?.Method
+                ? { id: tx.Method.id, name: tx.Method.name }
+                : null;
+
             records.push({
                 ...stockDetail.toJSON(),
                 entry_date: entryDate,
                 brand: stockDetail.Brand?.name,
                 state: stockDetail.State?.name,
+                brandObj,
+                stateObj,
                 bol_charge: tx ? Math.abs(Number(tx.amount)) : undefined,
                 dollar_rate: tx?.dollar_rate,
                 dollar_charge:
@@ -36,6 +51,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         : undefined,
                 charge_account: tx?.Account?.name,
                 method: tx?.Method?.name,
+                charge_accountObj: accountObj,
+                methodObj,
             });
         });
 
@@ -71,11 +88,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const stock = await Stock.findByPk(id);
         if (!stock) {
             return NextResponse.json({ error: 'Stock not found' }, { status: 404 });
-        }
+        }      
+        
+        const validationSchema = StockDetailsObjectSchema;
 
         return await createModel({
             model: StockDetails,
-            validationSchema: StockDetailsObjectSchema,
+            validationSchema: validationSchema,
             request,
             preValidate: async (data) => {
                 const pictureFile = data.picture as FormDataEntryValue | null;
@@ -156,10 +175,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                                     await tx.setUser(Number(decoded.userId));
                                 }
                             }
-                        } catch {}
+                        } catch { }
                     }
                 } catch (financeError) {
-                    console.error('Error creando transacción financiera para StockDetail:', financeError);
+                   console.error('Error creando transacción financiera para StockDetail:', financeError);
                 }
 
                 const response: any = {
@@ -211,9 +230,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 // Update a stock detail
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        
+
         const { id } = await params;
-        const url = new URL(request.url);
+        const url = new URL(request.url)        ;
         const detailId = url.pathname.split('/').pop();
 
         // Validate the request
