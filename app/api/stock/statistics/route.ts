@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { StockDetails, Brand, Stock, Product, State } from "@/services/backend/models/associations";
+import { StockDetails, Brand, Stock, Product, State, Transaction } from "@/services/backend/models/associations";
 
 export async function GET() {
     try {
@@ -35,7 +35,13 @@ export async function GET() {
                     model: State,
                     as: 'State',
                     attributes: ['name'],
-                }
+                },
+                {
+                    model: Transaction,
+                    as: 'Transaction',
+                    required: false,
+                    attributes: ['amount'],
+                },
             ],
             order: [['entry_date', 'DESC']]
         });
@@ -48,11 +54,12 @@ export async function GET() {
         let productsByBrand = [];
         let productsByBrandMap: any = {};
 
-        stockDetails.forEach(details => {
-            if (!productsByBrandMap[details.Brand.name]) {
-                productsByBrandMap[details.Brand.name] = 0;
+        stockDetails.forEach((details: any) => {
+            const brandName = details.Brand?.name ?? 'Sin marca';
+            if (!productsByBrandMap[brandName]) {
+                productsByBrandMap[brandName] = 0;
             }
-            productsByBrandMap[details.Brand.name]++;
+            productsByBrandMap[brandName]++;
         })
 
         productsByBrand = Object.entries(productsByBrandMap).map(([brand, count], idx) => ({
@@ -65,11 +72,12 @@ export async function GET() {
         let productsByState = [];
         let productsByStateMap: any = {};
 
-        stockDetails.forEach(details => {
-            if (!productsByStateMap[details.State.name]) {
-                productsByStateMap[details.State.name] = 0;
+        stockDetails.forEach((details: any) => {
+            const stateName = details.State?.name ?? 'Sin estado';
+            if (!productsByStateMap[stateName]) {
+                productsByStateMap[stateName] = 0;
             }
-            productsByStateMap[details.State.name]++;
+            productsByStateMap[stateName]++;
         })
 
         productsByState = Object.entries(productsByStateMap).map(([state, count], idx) => ({
@@ -81,10 +89,11 @@ export async function GET() {
 
         // Costos agregados por mes para el gráfico de líneas (Line Chart)
         const monthlyCostMap: Record<string, number> = {};
-        stockDetails.forEach(details => {
+        stockDetails.forEach((details: any) => {
             const date = new Date(details.entry_date);
             const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            monthlyCostMap[month] = (monthlyCostMap[month] || 0) + Number(details.Transaction.amount || 0);
+            const txAmount = Number(details.Transaction?.amount ?? 0);
+            monthlyCostMap[month] = (monthlyCostMap[month] || 0) + txAmount;
         });
 
         const costData = Object.keys(monthlyCostMap)
