@@ -6,8 +6,6 @@ export default function useModuleFormController() {
 
     const formType = getFormType(settings);
 
-    console.log(controls.formState)
-    
     return {
         settings,
         formType,

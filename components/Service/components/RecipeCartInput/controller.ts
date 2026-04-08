@@ -6,6 +6,7 @@ import api from "@/lib/axios";
 import { useUIDisplayControls } from "@/hooks/UIDisplayControlsProvider";
 import { CartItem } from "@/components/v2/ModuleForm/FormField/CartInput/context";
 import { useModuleFormContext } from "@/components/v2/ModuleForm/context";
+import { RecipeStockDetailsResponse } from "@/app/api/service/recipe/[id]/stockDetails/route";
 
 const filter = createFilterOptions<any>();
 
@@ -28,27 +29,27 @@ type ControllerState = {
     changeQuantity: (event: any) => void;
 };
 
+const defaultState: ControllerState = {
+    recipeOptions: [],
+    productOptions: [],
+    selectedRecipe: null,
+    selectedProduct: null,
+    cart: [],
+    quantity: 1,
+    loading: false,
+    isSmallScreen: false,
+    changeSelectedRecipe: () => { },
+    changeSelectedProduct: () => { },
+    setQuantity: () => { },
+    addItemToCart: () => { },
+    removeItemFromCart: () => { },
+    filterOptionsHandler: (options) => options,
+    getOptionLabel: () => "",
+    changeQuantity: () => { },
+}
+
 export default function useRecipeCartInputController(field?: formVanilla): ControllerState {
-    if (!field) {
-        return {
-            recipeOptions: [],
-            productOptions: [],
-            selectedRecipe: null,
-            selectedProduct: null,
-            cart: [],
-            quantity: 1,
-            loading: false,
-            isSmallScreen: false,
-            changeSelectedRecipe: () => { },
-            changeSelectedProduct: () => { },
-            setQuantity: () => { },
-            addItemToCart: () => { },
-            removeItemFromCart: () => { },
-            filterOptionsHandler: (options) => options,
-            getOptionLabel: () => "",
-            changeQuantity: () => { },
-        };
-    }
+    if (!field) return defaultState;
 
     const recipeUrl = field.autocomplete?.url ?? "/api/service/recipe";
     const productUrl = "/api/stock/details";
@@ -62,64 +63,269 @@ export default function useRecipeCartInputController(field?: formVanilla): Contr
     const [quantity, setQuantity] = useState<number>(0);
 
     const formCtx = useModuleFormContext();
-
     const iuCtx = useUIDisplayControls();
 
-    useEffect(() => {
-        if (!selectedRecipe?.id) return;
-        const fetchLastConfig = async () => {
-            try {
-                iuCtx.setScreenLoading(true);
-                const response = await api.get(`/api/service/recipe/${selectedRecipe.id}/stockDetails`);
 
-                setCart(response.data.map((item: any) => ({
-                    product: item.product,
-                    quantity: item.quantity,
-                    picture: item.product.picture,
-                })));
 
-            } catch (error) {
-                console.log("recipe_last_config_error", error);
-            } finally {
-                iuCtx.setScreenLoading(false);
-            }
-        };
-        fetchLastConfig();
-    }, [selectedRecipe?.id]);
 
-    const changeSelectedRecipe = (event: any, value: any) => {
-        setSelectedRecipe(value ?? null);
 
-        formCtx.controls.setFormState(fields => (
-            fields.map(state => (
-                state.field === field.id ? { ...state, value: value ? { selectedRecipe: value ?? null, products: [] } : '', error: '' } : state
-            ))
-        ));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const changeSelectedRecipe = async (event: any, value: any) => {
+        console.log('Receta seleccionada:', value);
+
+        // Si no hay valor, limpiar la receta seleccionada y el estado del formulario
+        if (!value) {
+            setSelectedRecipe(null);
+            formCtx.controls.setFormState(prev => prev.map(state => state.field === field.id ? { field: field.field, value: '', error: '' } : state));
+            return;
+        }
+
+        setSelectedRecipe(value);
+
+        try {
+            iuCtx.setScreenLoading(true);
+            const response: { data: RecipeStockDetailsResponse[] } = await api.get(`/api/service/recipe/${value.id}/stockDetails`);
+
+            const products = response.data.map((item: RecipeStockDetailsResponse) => ({
+                product: item.product,
+                quantity: item.quantity,
+                picture: item.product.picture,
+            }));
+
+            console.log('VALOR DE PRODUCTS GUARDADOS CON ANTERIORIDAD EN LA RECETA: ', products);
+
+            setCart(products);
+
+            formCtx.controls.setFormState(list => (
+                list.map(state => (
+                    state.field == field.id ? {
+                        field: field.field,
+                        value: {
+                            selectedRecipe: value,
+                            products
+                        },
+                        error: ''
+                    } : state
+                ))
+            ));
+        } catch (error) {
+            console.error('Error fetching recipe products:', error);
+        } finally {
+            iuCtx.setScreenLoading(false);
+        }
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const changeSelectedProduct = (event: any, value: any) => {
+        console.log('PRODUCTO SELECCIONADO:', value);
         setSelectedProduct(value ?? null);
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const changeQuantity = (event: any) => {
         setQuantity(Number(event.target.value));
     };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const addItemToCart = () => {
         if (!selectedProduct) return;
+
+        console.log('Producto a añadir al carrito: ', selectedProduct);
+
+        // Si la cantidad es menor o igual a 0, se establece automaticamente en 1
         const nextQuantity = Number(quantity) > 0 ? Number(quantity) : 1;
         const productId = selectedProduct?.id ?? selectedProduct?.value ?? JSON.stringify(selectedProduct);
-        const current = Array.isArray(cart) ? cart : [];
-        const idx = current.findIndex(item => (
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+        // Si la cantidad en el carrito no esta disponible, se cancela la operacion
+        if (selectedProduct.quantity < nextQuantity) {
+            iuCtx.setSnackbar({ open: true, message: 'No hay suficiente stock disponible para agregar esta cantidad.', severity: 'error' });
+            return;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Es posible que el usuario intente agregar el mismo 
+        // producto varias veces, saltandose los limites 
+        // de la cantidad disponible. Por eso, se verifica la
+        // viabilidad incluso con los productos que ya estan en el carrito, sumando las cantidades
+        const existingCartItem = cart.find(item => selectedProduct && item.product?.id === selectedProduct.id);
+        
+        if (existingCartItem) {
+            const totalQuantity = existingCartItem.quantity + nextQuantity;
+
+            if (selectedProduct.quantity < totalQuantity) {
+                iuCtx.setSnackbar({ open: true, message: 'No hay suficiente stock disponible para agregar esta cantidad.', severity: 'error' });
+                return;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Encontrar el indice dentro del carrito si coincide con el producto seleccionado
+        const idx = cart.findIndex(item => (
             (item.product?.id ?? item.product?.value ?? JSON.stringify(item.product)) === productId
         ));
 
-        const next = idx >= 0
-            ? current.map((item, index) => index === idx
-                ? { ...item, quantity: Number(item.quantity) + nextQuantity }
-                : item
-            )
-            : [...current, { product: selectedProduct, quantity: nextQuantity }];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Si el producto ya existe en el carrito, se actualiza la cantidad
+        let next = [];
+        if (idx >= 0) {
+            next = cart.map((item, index) => {
+                if (index === idx) {
+                    return { ...item, quantity: Number(item.quantity) + nextQuantity };
+                }
+                return item;
+            })
+        } else {
+            // De lo contrario, se añade el nuevo producto al carrito
+            next = [
+                ...cart, 
+                { 
+                    product: {
+                        id: selectedProduct.id,
+                        name: selectedProduct.name,
+                        picture: selectedProduct.picture,
+                        isTool: selectedProduct.Stock.Product.isTool,
+                    }, 
+                    quantity: nextQuantity 
+                }
+            ];
+        }
+
+
+
+        console.log('VALOR DEL CART ANTES DE AGREGAR:', next);
 
         setCart(next);
         setSelectedProduct(null);
@@ -131,6 +337,26 @@ export default function useRecipeCartInputController(field?: formVanilla): Contr
             ))
         ));
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const removeItemFromCart = (itemId: any, index?: number) => {
         const current = Array.isArray(cart) ? cart : [];
@@ -146,9 +372,42 @@ export default function useRecipeCartInputController(field?: formVanilla): Contr
         ));
     };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const filterOptionsHandler = (options: any[], state: any) => {
         return filter(options, state);
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const getOptionLabel = useMemo(() => {
         const key = field.autocomplete?.searchField ?? "name";
@@ -156,7 +415,38 @@ export default function useRecipeCartInputController(field?: formVanilla): Contr
     }, [field.autocomplete?.searchField]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const isSmallScreen = field.size !== 12;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     return {

@@ -3,10 +3,6 @@ import { NextResponse } from "next/server";
 import { handleServerError } from "@/lib/error";
 import RecipeStockDetails from "@/services/backend/models/service/recipeStockDetails";
 import ServiceStockDetails from "@/services/backend/models/service/serviceStockDetails";
-import db from "@/services/backend/db";
-import { Op, Sequelize } from "sequelize";
-import { getFinanceSettings } from "@/services/backend/config/settings";
-import { client } from "@/components/Vehicle/config/vehicleDatagrid/columns/fields/client";
 
 const createService = async (body: any) => {
     const { date, dollar_rate, bol_charge, dollar_charge } = body;
@@ -102,52 +98,50 @@ const associateVehicle = async (service: Service, body: any) => {
     console.log('VEHICULO ASOCIADO AL SERVICIO EXITOSAMENTE')
 }
 
-const reduceStockDetails = async (service: Service, body: any) => {
-    /*
-        - Los productos se encuentran en recipeName.products
-        - La cantidad usada por producto se encuentra en recipeName.products[x].quantity
-        - El producto como tal se encuentra en recipeName.products[x].product
+const reduceStockDetails = async (body: any) => {
+    const items = body.recipeName.products;
 
-        1. Obtener los productos de recipeName.products
-        2. Actualizar el inventario de los stock details
-
-    */
-
-    // 1. Obtener los productos de recipeName.products
-    const products = body.recipeName.products;
-
-    /*
-        - Cantidad usada esta en recipeName.products[x].quantity
-        - Cantidad actual esta en recipeName.products[x].product.quantity
-        - Se debe restar la cantidad usada a la cantidad actual
-        - Se debe comprobar que haya suficiente cantidad en el inventario
-           - Si hay suficiente cantidad, se debe restar la cantidad usada a la cantidad actual
-           - Si no hay suficiente cantidad, se debe devolver un error
-        2. Actualizar el inventario de los stock details
-    */
 
     // - Comprobar que haya suficiente cantidad en el inventario
-    for (const product of products) {
-        const quantityUsed = product.quantity;
-        const quantityActual = product.product.quantity;
-        const quantityDifference = quantityActual - quantityUsed;
+    for (const item of items) {
+
+        const stockDetailsId = item.product.id;
+        const stockId = (await StockDetails.findByPk(stockDetailsId))?.StockId;
+        const quantityUsed = item.quantity;
+        const quantityActual = await StockDetails.sum('quantity', { where: { StockId: stockId } });
+        const quantityDifference = item.product.isTool? quantityActual: quantityActual - quantityUsed;
+
+        console.log('ITEM EN CUESTION: ', item.product.name);
+        console.log('CANTIDAD USADA', quantityUsed);
+        console.log('CANTIDAD ACTUAL', quantityActual);
+        console.log('CANTIDAD DIFERENCIA', quantityDifference);
+
 
         if (quantityDifference < 0) {
             return NextResponse.json({ error: 'No hay suficiente cantidad en el inventario' }, { status: 400 });
         }
     }
 
+    console.log('HAY SUFICIENTE CANTIDAD EN EL INVENTARIO, PROCEDIENDO A REDUCIR INVENTARIO...');
+
     // 2. Actualizar el inventario de los stock details
-    for (const product of products) {
-        const quantityUsed = product.quantity;
-        const quantityActual = product.product.quantity;
-        const quantityDifference = quantityActual - quantityUsed;
+    for (const item of items) {
+        const stockDetailsId = item.product.id;
+        const stockId = (await StockDetails.findByPk(stockDetailsId))?.StockId;
+        const quantityUsed = item.quantity;
+        const quantityActual = await StockDetails.sum('quantity', { where: { StockId: stockId } });
+        const quantityDifference = item.product.isTool? quantityActual: quantityActual - quantityUsed;
+
+        console.log('CANTIDAD USADA', quantityUsed);
+        console.log('CANTIDAD ACTUAL', quantityActual);
+        console.log('CANTIDAD DIFERENCIA', quantityDifference);
+        console.log('ES UNA HERRAMIENTA', item.product.isTool);
 
         await StockDetails.update({
             quantity: quantityDifference
         }, {
             where: {
-                id: product.product.id,
+                id: item.product.id,
             }
         });
     }
@@ -235,18 +229,6 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        console.log('ESTE ES EL BODY', body);
-
-        /*
-            1. Crear servicio
-            2. Asociar receta, operadores y vehiculo
-            3. Reducir inventario de los stock details
-            4. Guardar los stock details en la receta para futuras referencias
-            5. Guardar los stock details en el servicio
-            6. Crear transaccion de pago
-            7. Enviar respuesta al cliente
-        */
-
         // 1. Crear servicio
         const service = await createService(body); // Si funciona
 
@@ -256,7 +238,7 @@ export async function POST(request: Request) {
         await associateVehicle(service, body); // Si funciona
 
         // 3. Reducir inventario de los stock details
-        await reduceStockDetails(service, body);
+        await reduceStockDetails(body);
 
         // 4. Guardar los stock details en la receta para futuras referencias
         await saveStockDetailsInRecipe(service, body);
@@ -289,25 +271,6 @@ export async function POST(request: Request) {
 // Obtener servicios
 export async function GET() {
     try {
-
-        /*
-            Se debe poder obtener los servicios con lo siguientes datos
-            - id del servicio
-            - fecha del servicio
-            - operadores involucrados en el servicio
-            - receta utilizada en el servicio
-            - monto en dolares
-            - monto en bolivares
-            - tasa de cambio
-            - estado del servicio (completado o pendiente)
-            - metodo de pago (si esta pendiente)
-
-            Detalles:
-            - Los operadores, la receta, el vehiculo, tasas, monto en bolivares y estado del servicio se obtienen del modelo Service
-            - El monto en dolares es calculado a partir de la tasa de cambio y el monto en bolivares
-            - Las transacciones se obtienen del modelo Service a traves del modelo ServiceTransactions
-        */
-
         const services = await Service.findAll({
             include: [
                 { model: Recipe, as: 'Recipe' },

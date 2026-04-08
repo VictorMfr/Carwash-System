@@ -147,6 +147,8 @@ export async function GET() {
 */
 export async function POST(request: Request) {
     try {
+
+        // Obtener la autentificacion de la persona quien realiza la accion
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ message: "Sesión no encontrada" }, { status: 401 });
@@ -156,11 +158,21 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: "Usuario no encontrado" }, { status: 401 });
         }
 
+
+
+        // Obtener el cuerpo de la solicitud
         const body = await request.json().catch(() => ({}));
+
+
+
+        // Obtener las ids de los operadores 
         const operatorIdsInput = Array.isArray(body?.operatorIds)
             ? body.operatorIds.map((id: any) => Number(id)).filter((id: number) => !Number.isNaN(id))
             : undefined;
         const operatorIdSet = operatorIdsInput?.length ? new Set(operatorIdsInput) : undefined;
+
+
+
 
         const rows = await buildPaymentRows(operatorIdSet as Set<number>);
         if (!rows.length) {
@@ -194,7 +206,7 @@ export async function POST(request: Request) {
         for (const row of rows) {
             const transaction = await Transaction.create({
                 date: new Date(),
-                amount: row.payment,
+                amount: -row.payment,
                 description: `Pago a operador ${row.operator}`,
                 dollar_rate: (await getDollarRate())[0].promedio,
             });

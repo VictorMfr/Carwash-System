@@ -3,6 +3,17 @@ import { Brand, Product, State, Stock, StockDetails } from "@/services/backend/m
 import RecipeStockDetails from "@/services/backend/models/service/recipeStockDetails";
 import { NextResponse } from "next/server";
 
+export interface RecipeStockDetailsResponse {
+    id: number;
+    quantity: number;
+    product: {
+        id: number;
+        name: string;
+        picture: string | null;
+        isTool: boolean;
+    };
+}
+
 // Obtener detalles de stock por id de receta
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -35,6 +46,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
                 quantity: data.quantity,
                 name: `${data.StockDetails.Stock.Product.name} - ${data.StockDetails.Brand.name}`,
                 picture: data.StockDetails.picture,
+                isTool: data.StockDetails.Stock.Product.isTool,
             }
             return { product, quantity: data.quantity };
         });
