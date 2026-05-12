@@ -22,6 +22,9 @@ const ModuleDataGrid = () => {
                 showToolbar={true}
                 onRowSelectionModelChange={controller.handleRowSelectionModelChange}
                 {...controller.customDataGridProps}
+                localeText={{
+                    paginationRowsPerPage: 'Filas por página'
+                }}
             />
             <Modal/>
         </Fragment>
